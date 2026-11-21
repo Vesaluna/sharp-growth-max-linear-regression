@@ -23,7 +23,7 @@ jobs:
       - name: Build Lean 4 project with Mathlib cache
         uses: leanprover/lean-action@v1
         with:
-          lean-dir: lean
+          lake-package-directory: lean
           use-github-cache: true
           build-args: ""
 
