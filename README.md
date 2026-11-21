@@ -1,6 +1,13 @@
 # Sharp Growth and Outlier-Robust Local Recovery in $\ell_1$ Max-Linear Regression
 
+[![Lean 4 CI](https://github.com/Vesaluna/sharp-growth-max-linear-regression/actions/workflows/lean.yml/badge.svg)](https://github.com/Vesaluna/sharp-growth-max-linear-regression/actions/workflows/lean.yml)
+![Lean v4.35.0](https://img.shields.io/badge/Lean-v4.35.0-blue)
+[![Code: Apache-2.0](https://img.shields.io/badge/code-Apache--2.0-green)](LICENSE)
+[![Text: CC BY 4.0](https://img.shields.io/badge/text-CC%20BY%204.0-lightgrey)](LICENSE-CC-BY-4.0)
+
 > **AI-assisted research preprint. Not peer-reviewed. Mathematical and novelty review ongoing.**
+
+**In brief.** Charisopoulos & Davis (2024) observed that simple subgradient methods converge fast and dimension-independently on $\ell_1$ max-linear regression, but did not prove the *sharp growth* property that would explain it. This preprint proves it: near the true parameters, the loss grows at least linearly with the distance to them, with constants that depend neither on the dimension nor on the sample size, and this continues to hold when a fraction $\alpha < 1/2$ of the observations is arbitrarily corrupted, provided the corrupted positions are chosen independently of the covariates (it fails for $\alpha > 1/2$). The main theorems are machine-checked in Lean 4; some supporting results are pen-and-paper only (see [Section 3](#3-actual-scope-of-lean-4-formal-verification)).
 
 This repository contains the research preprint, companion Lean 4 (`v4.35.0`) formal verification library, reproducible Python experiments, and mathematical/novelty/AI-contribution audit records for an investigation of quantitative sharp growth and outlier robustness in $\ell_1$ max-linear regression (motivated by Charisopoulos & Davis, *Mathematics of Operations Research* 2024, Section 5.2.2, catalogued as CAM-Bench Open Problem 107).
 
@@ -14,6 +21,8 @@ This repository contains the research preprint, companion Lean 4 (`v4.35.0`) for
   - [`docs/novelty_audit_final.md`](docs/novelty_audit_final.md)
   - [`docs/novelty_claims_evidence.md`](docs/novelty_claims_evidence.md)
   - [`docs/ai_contribution_record.md`](docs/ai_contribution_record.md)
+
+> **Note on numbering.** The audit records in `docs/` were written alongside earlier drafts and sometimes refer to results by their numbering at the time (e.g. "Theorem 4", "Corollary 5.2", "Proposition 5.4", "Lemmas 5.5–5.7"). The current manuscript [`paper/main.pdf`](paper/main.pdf) is authoritative; in it, the explicit $r = 2$ corollary is **Corollary 5.3**, the algorithmic corollary is **Corollary 5.4**, the $\alpha > 1/2$ converse is **Proposition 5.5**, and the three probabilistic lemmas are **Lemmas 5.6–5.8**. This README and the files in `paper/` use the current numbering.
 
 ---
 
@@ -52,7 +61,7 @@ there exists an event $\mathcal{E}$ of probability at least $1 - \delta_{\mathrm
 2. $|f(\beta) - f(\beta')| \le 2\|\beta - \beta'\|_F$ for all $\beta, \beta' \in \mathbb{R}^{r \times d}$;
 3. If $\xi \equiv 0$, then $f(\beta) - f^* \ge \frac{\gamma}{4}\mathrm{dist}(\beta, X^*)$ on $B(\beta^*, \rho/2)$ (in particular $\frac{\alpha_{\min}}{4}\mathrm{dist}(\beta, X^*)$ when $S_{\mathrm{bad}} = \emptyset$).
 
-For noiseless $r = 2$ (Corollary 5.2), $m \ge 3400d + 480\log(6/\delta_{\mathrm{fail}})$ gives $f(\beta) - f^* \ge \frac{1}{4\sqrt{2\pi}}\mathrm{dist}(\beta, X^*)$ on $B(\beta^*, \frac{\|v\|_2}{104\sqrt{\pi}})$ with condition ratio $L/\mu \le 8\sqrt{2\pi} \approx 20.05$, directly verifying Assumption `(A1)` of Charisopoulos & Davis (2024). Proposition 5.4 (Lean-verified) proves a matching finite-sample converse for $\alpha > 1/2$, while Section 6 demonstrates empirically that an omniscient-location adversary already breaks local optimality at $\alpha = 0.25$.
+For noiseless $r = 2$ (Corollary 5.3), $m \ge 3400d + 480\log(6/\delta_{\mathrm{fail}})$ gives $f(\beta) - f^* \ge \frac{1}{4\sqrt{2\pi}}\mathrm{dist}(\beta, X^*)$ on $B(\beta^*, \frac{\|v\|_2}{104\sqrt{\pi}})$ with condition ratio $L/\mu \le 8\sqrt{2\pi} \approx 20.05$, directly verifying Assumption `(A1)` of Charisopoulos & Davis (2024). Proposition 5.5 (Lean-verified) proves a matching finite-sample converse for $\alpha > 1/2$, while Section 6 demonstrates empirically that an omniscient-location adversary already breaks local optimality at $\alpha = 0.25$.
 
 ---
 
@@ -64,14 +73,14 @@ For noiseless $r = 2$ (Corollary 5.2), $m \ge 3400d + 480\log(6/\delta_{\mathrm{
   - **Theorem 3.1** (`theorem2_gaussian_remainder_bounds`, `theorem2_unconditional_global_sharpness`, `theorem2_global_quadratic_norm_bound`)
   - **Lemma 4.1** (`lemma31_pointwise_flip_decomp`) and **Lemma 4.3** (`lemma33_gaussian_bathtub`)
   - **Theorem 5.1** (`theorem4_unconditional_probabilistic` and `theorem4_from_pi_min`, covering both $\|\cdot\|_{1,2}$ and $\|\cdot\|_F$, global $2$-Lipschitzness, and noiseless half-radius distance identity)
-  - **Lemmas 5.5, 5.6, 5.7, A.1, A.2, A.3** (Gaussian operator norm, cone concentration, flip concentration, volumetric sphere covering, and moment induction)
-  - **Proposition 5.4** (`proposition41_prime_breakdown_necessity`)
-  - Counterexample and class witness of **Proposition 2.2** (`theorem1b_counterexample_constant`, `theorem1b_class_not_weakly_convex`) and exact algebraic identities of **Corollary 5.2** (`corollary41_exact_identities`)
+  - **Lemmas 5.6, 5.7, 5.8, A.1, A.2, A.3** (Gaussian operator norm, cone concentration, flip concentration, volumetric sphere covering, and moment induction)
+  - **Proposition 5.5** (`proposition41_prime_breakdown_necessity`)
+  - Counterexample and class witness of **Proposition 2.2** (`theorem1b_counterexample_constant`, `theorem1b_class_not_weakly_convex`) and exact algebraic identities of **Corollary 5.3** (`corollary41_exact_identities`)
 - **Human proof only (NOT formalized in Lean 4):**
   - **Propositions 2.1, 2.2(b), 2.3, 4.4**
   - **Lemma 4.2** and final assembly of **Theorem 4.5** (general-$r$ population sharp growth)
-  - Numerical domination check (`3400d + 480 log(6/δ)`) in **Corollary 5.2** (checked in Python)
-  - Semialgebraic active-manifold regularity `(A2)` and algorithmic convergence in **Corollary 5.3** (cited from Charisopoulos & Davis 2024)
+  - Numerical domination check (`3400d + 480 log(6/δ)`) in **Corollary 5.3** (checked in Python)
+  - Semialgebraic active-manifold regularity `(A2)` and algorithmic convergence in **Corollary 5.4** (cited from Charisopoulos & Davis 2024)
 
 ---
 
@@ -129,11 +138,13 @@ No AI system is listed as an author.
 
 ---
 
-## 8. Repository Structure & Licensing Note
+## 8. Repository Structure
 
 ```text
 sharp-growth-max-linear-regression/
 ├── README.md
+├── LICENSE                          # Apache-2.0 (Lean 4 and Python code)
+├── LICENSE-CC-BY-4.0                # CC BY 4.0 (manuscript and documentation)
 ├── .github/workflows/lean.yml       # Automated Lean 4 (v4.35.0) CI build
 ├── paper/                           # LaTeX manuscript, compiled PDF, Lean guide, summary, referee brief
 ├── lean/                            # Pinned Lean 4 (v4.35.0) + Mathlib4 formalization
@@ -141,4 +152,13 @@ sharp-growth-max-linear-regression/
 └── docs/                            # Mathematical errata, statement/novelty audits, AI contribution record
 ```
 
-**License status:** No `LICENSE` file is included in `v0.1-research-draft` (all rights reserved by default) while the author evaluates separate licensing for the manuscript text versus the Lean 4 and Python code.
+---
+
+## 9. License
+
+Copyright © 2026 Vesaluna.
+
+- **Code** — the Lean 4 formalization (`lean/`), the Python experiments (`experiments/`), and the CI configuration (`.github/`) — is licensed under the [Apache License 2.0](LICENSE), the same license as `mathlib4`.
+- **Text** — the manuscript and its sources (`paper/`, including `main.pdf`, `main.tex`, and `references.bib`), the documentation (`docs/`), and this README — is licensed under [Creative Commons Attribution 4.0 International (CC BY 4.0)](LICENSE-CC-BY-4.0).
+
+The release tagged `v0.1-research-draft` predates these license files and was published without a license.
