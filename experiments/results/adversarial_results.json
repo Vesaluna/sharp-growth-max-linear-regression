@@ -1,0 +1,78 @@
+{
+  "test1_non_weak_convexity": {
+    "chatgpt_counterexample_max_dev": 0.0,
+    "distinct_ai_cancellation_second_diff": 0.10000000000000009,
+    "exact_jump_nonweaklyconvex_K": -0.9999999999976694
+  },
+  "test2_theorem2_3d": {
+    "n_cases": 295,
+    "max_sign_violation": 1.6296027749440611e-07,
+    "max_rem_violation": 9.359705943623453e-08,
+    "max_geom_ratio": 0.989852421225278,
+    "min_glob_ratio": 0.37245595246081287,
+    "theory_glob_lb": 0.23369497725510915,
+    "worst_glob_info": {
+      "tag": "voronoi_boundary",
+      "ratio": 0.37245595246081287,
+      "F": 0.6445348490574982,
+      "dist": 1.7304995256460871
+    },
+    "max_alg_viol": 0.0
+  },
+  "test3_theorem3_edges": [
+    {
+      "eps": 0.5,
+      "pi_3": 0.1487,
+      "alpha3_emp": 0.04225531334213584,
+      "bathtub_lb": 0.013736821471622408,
+      "poly_lb": 0.009237631225645923,
+      "F_hat": 0.00042288681506386306,
+      "L_hat": 0.0004225531334213585,
+      "abs_rem": 3.3368164250457836e-07,
+      "pair_bnd": 3.5682482323055425e-05,
+      "bathtub_holds": true,
+      "pair_bnd_holds": true
+    },
+    {
+      "eps": 0.1,
+      "pi_3": 0.032215,
+      "alpha3_emp": 0.001979405755250917,
+      "bathtub_lb": 0.0006500836321093273,
+      "poly_lb": 0.00043356573786217697,
+      "F_hat": 1.9833983122668565e-05,
+      "L_hat": 1.9794057552509173e-05,
+      "abs_rem": 3.992557015939258e-08,
+      "pair_bnd": 3.9696240574660725e-05,
+      "bathtub_holds": true,
+      "pair_bnd_holds": true
+    },
+    {
+      "eps": 0.02,
+      "pi_3": 0.006575,
+      "alpha3_emp": 8.158277115428352e-05,
+      "bathtub_lb": 2.709031683390633e-05,
+      "poly_lb": 1.8060517825828298e-05,
+      "F_hat": 8.140690716919051e-07,
+      "L_hat": 8.158277115428354e-07,
+      "abs_rem": 1.758639850930275e-09,
+      "pair_bnd": 3.9886251587391325e-05,
+      "bathtub_holds": true,
+      "pair_bnd_holds": true
+    }
+  ],
+  "test4_theorem4_constants_and_adversary": {
+    "cor41_lem42_d": 1494.3547408235559,
+    "cor41_lem42_log": 402.1238596594935,
+    "cor41_lem43_d": 3046.4528313125397,
+    "cor41_lem43_log": 477.93045769631067,
+    "cor41_exact_rho_coeff": 0.010849799683610698,
+    "cor41_exact_rho_half_coeff": 0.005424899841805349,
+    "cor41_phase1_typo_coeff": 0.007671966930796783,
+    "lem43_max_moment_ratio": 1.0,
+    "omniscient_alpha025_diff": -0.011841109389479427,
+    "oblivious_alpha052_diff": -0.0013947556323135098
+  },
+  "test5_prop43_audit": {
+    "C_sb_corrected": 10430.378350470453
+  }
+}

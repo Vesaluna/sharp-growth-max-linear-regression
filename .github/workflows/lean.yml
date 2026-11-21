@@ -1,0 +1,37 @@
+name: Lean 4 Formalization CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'lean/**'
+      - '.github/workflows/lean.yml'
+  pull_request:
+    paths:
+      - 'lean/**'
+      - '.github/workflows/lean.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build & Verify Lean 4 (v4.35.0)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Lean 4 project with Mathlib cache
+        uses: leanprover/lean-action@v1
+        with:
+          lean-dir: lean
+          use-github-cache: true
+          build-args: ""
+
+      - name: Audit zero sorry/admit/custom axioms
+        working-directory: lean
+        run: |
+          if grep -rnE '^\s*(sorry|admit)\b|^axiom |unsafe |implemented_by' Research107/ Research107.lean; then
+            echo "ERROR: Found prohibited keyword or custom axiom in Lean sources."
+            exit 1
+          fi
+          echo "PASS: Zero sorry, admit, custom axiom, or unsafe declarations."
