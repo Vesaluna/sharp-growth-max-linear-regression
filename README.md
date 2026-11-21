@@ -3,7 +3,6 @@
 [![Lean 4 CI](https://github.com/Vesaluna/sharp-growth-max-linear-regression/actions/workflows/lean.yml/badge.svg)](https://github.com/Vesaluna/sharp-growth-max-linear-regression/actions/workflows/lean.yml)
 ![Lean v4.35.0](https://img.shields.io/badge/Lean-v4.35.0-blue)
 [![Code: Apache-2.0](https://img.shields.io/badge/code-Apache--2.0-green)](LICENSE)
-[![Text: CC BY 4.0](https://img.shields.io/badge/text-CC%20BY%204.0-lightgrey)](LICENSE-CC-BY-4.0)
 
 > **AI-assisted research preprint. Not peer-reviewed. Mathematical and novelty review ongoing.**
 
@@ -144,7 +143,6 @@ No AI system is listed as an author.
 sharp-growth-max-linear-regression/
 ├── README.md
 ├── LICENSE                          # Apache-2.0 (Lean 4 and Python code)
-├── LICENSE-CC-BY-4.0                # CC BY 4.0 (manuscript and documentation)
 ├── .github/workflows/lean.yml       # Automated Lean 4 (v4.35.0) CI build
 ├── paper/                           # LaTeX manuscript, compiled PDF, Lean guide, summary, referee brief
 ├── lean/                            # Pinned Lean 4 (v4.35.0) + Mathlib4 formalization
@@ -159,6 +157,6 @@ sharp-growth-max-linear-regression/
 Copyright © 2026 Vesaluna.
 
 - **Code** — the Lean 4 formalization (`lean/`), the Python experiments (`experiments/`), and the CI configuration (`.github/`) — is licensed under the [Apache License 2.0](LICENSE), the same license as `mathlib4`.
-- **Text** — the manuscript and its sources (`paper/`, including `main.pdf`, `main.tex`, and `references.bib`), the documentation (`docs/`), and this README — is licensed under [Creative Commons Attribution 4.0 International (CC BY 4.0)](LICENSE-CC-BY-4.0).
+- **Text** — new revisions of the manuscript (`paper/`), documentation (`docs/`), and README are not offered under a new Creative Commons license. All rights are reserved for new material unless stated otherwise. Previously distributed versions carrying CC BY 4.0 remain subject to that license; removing the notice does not revoke already granted rights.
 
 The release tagged `v0.1-research-draft` predates these license files and was published without a license.
