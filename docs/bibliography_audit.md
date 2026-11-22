@@ -31,7 +31,7 @@ During the final primary-source audit on 2026-11-22, four concrete discrepancies
 3. **`kanj2026sparse` (H. Kanj, S. Kim, & K. Lee, *SIAM J. Math. Data Sci.* 2026):**
    - *Update applied:* Verified published SIAM record (`10.1137/24M1709303`) as **Vol. 8, No. 4, pp. 1155–1178 (2026)** and updated `paper/references.bib` accordingly.
 4. **`dolgopolik2023nonlocal` (M. V. Dolgopolik, *Set-Valued Var. Anal.* 2023 / `arXiv:2210.02606`):**
-   - *Primary check:* Direct inspection of `PWAff_ErrorBounds.tex` from `arXiv:2210.02606` confirmed that `Theorem 4` (`thrm:Robinson`), `Proposition 1` (`prp:UniformLocalErrorBound`), and `Corollary 2` (coercive piecewise-affine functions admit a global error bound) match the exact citations used in Proposition 2.2 of `paper/main.tex`.
+   - *Primary check:* Direct inspection of `PWAff_ErrorBounds.tex` from `arXiv:2210.02606` confirmed that `Theorem 4` (`thrm:Robinson`), `Proposition 1` (`prp:UniformLocalErrorBound`), and `Corollary 2` (coercive piecewise-affine functions admit a global error bound) match the exact citations used in Proposition 2.1 of `paper/main.tex`.
 
 ---
 
@@ -39,9 +39,9 @@ During the final primary-source audit on 2026-11-22, four concrete discrepancies
 
 | Citation in `paper/main.tex` | Target Work | Specific Internal Reference | Status | Verification Evidence & Boundary |
 | :--- | :--- | :--- | :--- | :--- |
-| Prop. 2.2 | `robinson1981some` | Proposition 1 | `[VERIFIED-METADATA]` | Classical polyhedral multifunction upper Lipschitzness (Proposition 1 in Robinson 1981) confirmed via Dolgopolik (`arXiv:2210.02606`, Theorem 4 citation & statement) and Pang (1997); paywalled 1981 Springer PDF not directly inspected. |
-| Prop. 2.2 | `dolgopolik2023nonlocal` | Theorem 4, Proposition 1 | `[VERIFIED-PRIMARY]` | Directly read in `arXiv:2210.02606` (`PWAff_ErrorBounds.tex`): `thrm:Robinson` = Theorem 4, `prp:UniformLocalErrorBound` = Proposition 1. |
-| Prop. 2.2 | `dolgopolik2023nonlocal` | Corollary 2 | `[VERIFIED-PRIMARY]` | Directly read in `arXiv:2210.02606` (`PWAff_ErrorBounds.tex`): Corollary 2 establishes global error bound under coercivity / bounded sublevel sets. |
+| Prop. 2.1 | `robinson1981some` | Proposition 1 | `[VERIFIED-METADATA]` | Classical polyhedral multifunction upper Lipschitzness (Proposition 1 in Robinson 1981) confirmed via Dolgopolik (`arXiv:2210.02606`, Theorem 4 citation & statement) and Pang (1997); paywalled 1981 Springer PDF not directly inspected. |
+| Prop. 2.1 | `dolgopolik2023nonlocal` | Theorem 4, Proposition 1 | `[VERIFIED-PRIMARY]` | Directly read in `arXiv:2210.02606` (`PWAff_ErrorBounds.tex`): `thrm:Robinson` = Theorem 4, `prp:UniformLocalErrorBound` = Proposition 1. |
+| Prop. 2.1 | `dolgopolik2023nonlocal` | Corollary 2 | `[VERIFIED-PRIMARY]` | Directly read in `arXiv:2210.02606` (`PWAff_ErrorBounds.tex`): Corollary 2 establishes global error bound under coercivity / bounded sublevel sets. |
 | Sec. 1, Cor. 5.4 | `charisopoulos2024superpolyak` | Section 5.2.2 | `[VERIFIED-PRIMARY]` | Directly read in `arXiv:2201.04611` LaTeX source (max-linear regression application & open verification of `(A1)`). |
 | Cor. 5.4 | `charisopoulos2024superpolyak` | Proposition 2.1 (in `arXiv:2201.04611`) | `[VERIFIED-PRIMARY]` | Directly verified in `arXiv:2201.04611` LaTeX source (`prop:b_reg`: semialgebraic functions with isolated minimizers satisfy `(A2)`). Paywalled MOR 49(3) numbering `[UNVERIFIED]`. |
 | Cor. 5.4 | `charisopoulos2024superpolyak` | Theorem 2.1 & Corollary 2.3 (in `arXiv:2201.04611`) | `[VERIFIED-PRIMARY]` | Directly verified in `arXiv:2201.04611` LaTeX source (`thm:polyak_sgm`, `cor:corsuperpolyak`). Paywalled MOR 49(3) numbering `[UNVERIFIED]`. |

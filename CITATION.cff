@@ -1,9 +1,14 @@
 cff-version: 1.2.0
-message: "If you use this preprint, Lean 4 formalization, or experiment code, please cite it as below (and add the Zenodo Version DOI once published)."
-type: dataset
-title: "Sharp Growth and Outlier-Robust Local Recovery in l1 Max-Linear Regression"
+message: "If you use this preprint, Lean 4 formalization, or experiment code, please cite the formal Zenodo preprint listed under preferred-citation below."
+type: software
+title: "Sharp Growth and Outlier-Robust Local Recovery in ℓ₁ Max-Linear Regression (Lean 4 Formalization and Experiments)"
 version: "1.0.0-preprint"
 date-released: "2026-11-22"
+# Note on split licensing: top-level `license: Apache-2.0` applies strictly to the software/code
+# (`lean/`, `experiments/`, `.github/`). The archived Zenodo preprint (`10.5281/zenodo.24443089`)
+# is licensed under CC-BY-4.0 (see `preferred-citation`). Other unarchived repository text files
+# not explicitly licensed remain All Rights Reserved (see README.md).
+license: "Apache-2.0"
 authors:
   - family-names: "Huang"
     given-names: "Haixin"
@@ -11,6 +16,14 @@ authors:
     affiliation: "Independent Researcher, Naples, Italy"
     email: "huanghaixin061028@gmail.com"
 repository-code: "https://github.com/Vesaluna/sharp-growth-max-linear-regression"
+url: "https://doi.org/10.5281/zenodo.24443089"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.24443089"
+    description: "Zenodo Version DOI for v1.0.0-preprint (archived 2026-11-22)"
+  - type: doi
+    value: "10.5281/zenodo.24443088"
+    description: "Zenodo Concept DOI (always resolves to the latest version)"
 keywords:
   - "max-linear regression"
   - "least absolute deviations"
@@ -19,8 +32,30 @@ keywords:
   - "robust statistics"
   - "nonconvex nonsmooth optimization"
   - "Lean 4 formal verification"
-# Licensing note: Code (lean/, experiments/, .github/) is licensed under Apache-2.0 (see LICENSE).
-# Manuscript text (paper/, docs/, README.md) carries no new Creative Commons license (all rights
-# reserved pending the author's explicit licensing choice at archival release).
-# DOI note: Do not fabricate a DOI. Add `doi: "10.5281/zenodo.XXXXXXX"` only after reserving or
-# minting a real Version DOI on Zenodo.
+preferred-citation:
+  type: generic
+  status: preprint
+  title: "Sharp Growth and Outlier-Robust Local Recovery in ℓ₁ Max-Linear Regression"
+  authors:
+    - family-names: "Huang"
+      given-names: "Haixin"
+      orcid: "https://orcid.org/0009-0005-5243-0680"
+      affiliation: "Independent Researcher, Naples, Italy"
+      email: "huanghaixin061028@gmail.com"
+  publisher:
+    name: "Zenodo"
+  year: 2026
+  month: 11
+  date-published: "2026-11-22"
+  version: "1.0.0-preprint"
+  doi: "10.5281/zenodo.24443089"
+  url: "https://doi.org/10.5281/zenodo.24443089"
+  license: "CC-BY-4.0"
+  identifiers:
+    - type: doi
+      value: "10.5281/zenodo.24443089"
+      description: "Zenodo Version DOI for v1.0.0-preprint"
+    - type: doi
+      value: "10.5281/zenodo.24443088"
+      description: "Zenodo Concept DOI (resolves to the latest version)"
+  notes: "AI-assisted research preprint (not peer-reviewed). Accompanying Lean 4 proofs and experiments: https://github.com/Vesaluna/sharp-growth-max-linear-regression"

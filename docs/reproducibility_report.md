@@ -106,11 +106,11 @@ Setup (identical to Experiment D in `paper/main.pdf`, Section 6 and Supplement S
 ## 4. Independent Python Sanity Checks of Pen-and-Paper Calculations
 
 In addition to the main experiment scripts, a standalone Python numerical/symbolic verification pass was run on 2026-11-22 covering every unformalized algebraic/integral calculation in `paper/main.pdf`:
-- **Proposition 2.1:** 4-point $d=2, r=2$ counterexample (`((0,1),(0,-1))` and `((0,-1),(0,1))`) — verified exact $f \equiv 1$ along the line segment despite active tie and under-prediction.
+- **Proposition 2.1:** 4-point $d=2, r=2$ non-coercivity counterexample (`((0,1),(0,-1))` and `((0,-1),(0,1))`) — verified exact $X^*$ and failure of coercivity/global error bound without positive spanning.
 - **Proposition 2.3:** Uniform Beta/Gamma bounds for $d \in [2, 200]$ — verified numerically.
 - **Remark 3.2:** 2D polar quadrature at $\beta^* = (e_1, -e_1), \beta = (e_2, -e_2)$ — verified $F(\beta) = \frac{4 - 2\sqrt{2}}{\sqrt{\pi}}$ and $F(\beta)/\operatorname{dist}(\beta, X_{\mathrm{pop}}^*) = \frac{2 - \sqrt{2}}{\sqrt{\pi}} \approx 0.330495$.
 - **Lemma 4.2 & Proposition 4.4:** Polar flip integral and diagonal $\ell_1$/$\ell_2$ cone conditioning formulas — verified numerically.
-- **Corollary 5.3:** Exact sample complexity thresholds (`1494.35`, `402.12` $\implies 1495d + 403\log(6/\delta)$; `3046.45`, `477.93` $\implies 3047d + 478\log(6/\delta)$) — verified.
+- **Corollary 5.3:** Exact branch evaluations (`1494.35`, `402.12` for cone event; `3046.45`, `477.93` for flip event) — verified both dominated by $m \ge 3400\,d + 480\log(6/\delta_{\mathrm{fail}})$.
 - **Supplement SM2 ($\alpha = 0.25$ omniscient adversary):** Tail bound $e^{-z_{0.25}^2/2} \approx 0.51600 > 0.5$ — verified.
 
 **Important caveat:** Numerical and symbolic sanity checks catch arithmetic errors, but they do **not** substitute for Lean 4 formalization or independent line-by-line review by a human mathematician.
