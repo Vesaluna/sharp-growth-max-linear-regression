@@ -32,20 +32,20 @@ Unlike quadratic $`\ell_1`$ phase retrieval or low-rank matrix recovery, $f$ is 
 - **Global $r = 2$ Gaussian Population Sharpness (Section 3):**
   - **Theorem 3.1 & Remark 3.2:** Exact coupled one-sided remainder identity in block coordinates and scale-free global sharpness
 
-    ```math
+    $$
     F(\beta) \ge \frac{\sqrt{2}-1}{\sqrt{\pi}}\,\mathrm{dist}(\beta, X_{\mathrm{pop}}^*)
-    ```
+    $$
 
     for all $`d \ge 1`$ (Remark 3.2 notes non-optimality of the Frobenius constant via the balanced witness $`\frac{2-\sqrt{2}}{\sqrt{\pi}} \approx 0.330495`$).
-- **General-$r$ Population Geometry & $`\ell_1`$-vs.-$`\ell_2`$ Conditioning (Section 4):**
-  - **Lemmas 4.1–4.3, Proposition 4.4, Theorem 4.5:** Pointwise flip decomposition (**Lemma 4.1**), exact 2D Gaussian polar flip integral (**Lemma 4.2**), universal Gaussian bathtub bound $`\alpha(C) \ge \frac{\sqrt{2\pi}}{6}\pi(C)^2`$ (**Lemma 4.3**), explicit $`\Theta(p^2)`$ vs. $`\Theta(p^3)`$ active-cone conditioning advantage of $`\ell_1`$ over $`\ell_2`$ (**Proposition 4.4**), and general-$r$ local population sharp growth (**Theorem 4.5**).
+- **General-$`r`$ Population Geometry & $`\ell_1`$-vs.-$`\ell_2`$ Conditioning (Section 4):**
+  - **Lemmas 4.1–4.3, Proposition 4.4, Theorem 4.5:** Pointwise flip decomposition (**Lemma 4.1**), exact 2D Gaussian polar flip integral (**Lemma 4.2**), universal Gaussian bathtub bound $`\alpha(C) \ge \frac{\sqrt{2\pi}}{6}\pi(C)^2`$ (**Lemma 4.3**), explicit $`\Theta(p^2)`$ vs. $`\Theta(p^3)`$ active-cone conditioning advantage of $`\ell_1`$ over $`\ell_2`$ (**Proposition 4.4**), and general-$`r`$ local population sharp growth (**Theorem 4.5**).
 - **Finite-Sample Outlier-Robust Sharp Growth (Section 5):**
   - **Theorem 5.1 & Remark 5.2:** Under isotropic Gaussian covariates and an oblivious fixed corruption subset $`S_{\mathrm{bad}}`$ of fraction $`\alpha < 1/2`$, with high probability over $a$ *simultaneously* for all arbitrary (possibly data-dependent) outlier magnitudes $`\xi`$ supported on $`S_{\mathrm{bad}}`$,
 
-    ```math
+    $$
     f_\xi(\beta) - f_\xi(\beta^*) \ge \frac{(1 - 2\alpha)\alpha_{\min}}{4}\max\bigl(\|\beta - \beta^*\|_{1,2},\, \|\beta - \beta^*\|_F\bigr)
     \qquad \forall \beta \in B(\beta^*, \rho),
-    ```
+    $$
 
     with global $2$-Lipschitzness and unique local recovery $`\beta^* \in X^*`$ (plus exact half-radius distance identity when $`\xi \equiv 0`$). **Remark 5.2** details the $`\kappa`$-free and $`\log(m/d)`$-free sample complexity structure and its purely geometric $`\pi_{\min}`$-parameterized version via Lemma 4.3.
   - **Corollaries 5.3–5.4:** Explicit noiseless $r = 2$ sample threshold $`m \ge 3400\,d + 480\log(6/\delta_{\mathrm{fail}})`$ (dominating both the cone-event branch $`\approx 1494.35\,d + 402.12\log(6/\delta_{\mathrm{fail}})`$ and flip-event branch $`\approx 3046.45\,d + 477.93\log(6/\delta_{\mathrm{fail}})`$) with $`\rho/2 = \|v\|_2/(104\sqrt{\pi})`$ and $`L/\mu \le 8\sqrt{2\pi}`$ (**Corollary 5.3**), and verification of Assumption `(A1)` in Charisopoulos & Davis (2024, `arXiv:2201.04611`, Prop. 2.1, Thm. 2.1, Cor. 2.3) (**Corollary 5.4**).
