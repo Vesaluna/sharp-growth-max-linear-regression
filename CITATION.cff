@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this preprint, Lean 4 formalization, or experiment code, please cite it as below (and add the Zenodo Version DOI once published)."
+type: dataset
+title: "Sharp Growth and Outlier-Robust Local Recovery in l1 Max-Linear Regression"
+version: "1.0.0-preprint"
+date-released: "2026-11-22"
+authors:
+  - family-names: "Huang"
+    given-names: "Haixin"
+    orcid: "https://orcid.org/0009-0005-5243-0680"
+    affiliation: "Independent Researcher, Naples, Italy"
+    email: "huanghaixin061028@gmail.com"
+repository-code: "https://github.com/Vesaluna/sharp-growth-max-linear-regression"
+keywords:
+  - "max-linear regression"
+  - "least absolute deviations"
+  - "sharp growth"
+  - "metric subregularity"
+  - "robust statistics"
+  - "nonconvex nonsmooth optimization"
+  - "Lean 4 formal verification"
+# Licensing note: Code (lean/, experiments/, .github/) is licensed under Apache-2.0 (see LICENSE).
+# Manuscript text (paper/, docs/, README.md) carries no new Creative Commons license (all rights
+# reserved pending the author's explicit licensing choice at archival release).
+# DOI note: Do not fabricate a DOI. Add `doi: "10.5281/zenodo.XXXXXXX"` only after reserving or
+# minting a real Version DOI on Zenodo.

@@ -1,0 +1,215 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,amsfonts,mathtools}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\setlist[enumerate]{leftmargin=.35in, itemsep=2pt, topsep=4pt}
+\setlist[itemize]{leftmargin=.35in, itemsep=2pt, topsep=4pt}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=blue!55!black,citecolor=teal!60!black,urlcolor=blue!55!black]{hyperref}
+
+\hypersetup{
+  pdftitle={Supplementary Materials: Sharp Growth and Outlier-Robust Local Recovery in l1 Max-Linear Regression},
+  pdfauthor={Haixin Huang},
+  pdfsubject={Supplementary Materials (Research Preprint)}
+}
+
+% Supplement section, table, and page numbering (standalone, zero external aux dependency)
+\renewcommand{\thesection}{SM\arabic{section}}
+\renewcommand{\thetable}{SM\arabic{table}}
+\renewcommand{\theequation}{SM\arabic{equation}}
+\renewcommand{\thepage}{SM\arabic{page}}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\ind}{\mathbf{1}}
+\newcommand{\ip}[2]{\langle #1, #2 \rangle}
+\newcommand{\Fnorm}[1]{\|#1\|_F}
+\newcommand{\Lonenorm}[1]{\|#1\|_{1,2}}
+\newcommand{\dist}{\operatorname{dist}}
+
+\title{\bfseries Supplementary Materials:\\Sharp Growth and Outlier-Robust Local Recovery in $\ell_1$ Max-Linear Regression\thanks{Companion Supplementary Materials to the research preprint of the same title (\texttt{main.pdf}, dated November~22, 2026). This document compiles standalone and contains the Lean~4 verification inventory (Section~SM1) and experimental reproducibility protocol and expanded numerical tables (Section~SM2).}}
+
+\author{Haixin Huang\thanks{Independent Researcher, Naples, Italy. Email: \texttt{huanghaixin061028@gmail.com}. ORCID: \url{https://orcid.org/0009-0005-5243-0680}.}}
+
+\date{November 22, 2026}
+
+\begin{document}
+
+\maketitle
+
+% ============================================================================
+\section{Lean 4 Formal Verification Inventory and Build Instructions}
+\label{sec:sm-lean}
+% ============================================================================
+
+To provide kernel-level verification of the core statistical and geometric theorems of the main preprint (\texttt{main.pdf}), the primary results were formalized in Lean~4 (\texttt{leanprover/lean4:v4.35.0}) using only \texttt{mathlib v4.35.0} (pinned git commit \texttt{56a005855ea17e0b0958f73ec801ae140b0a1679} in \texttt{lean/lake-manifest.json}). The Lean package (\texttt{lean/}, 12 files, 5{,}851 lines) compiles cleanly via \texttt{lake build} (\texttt{3803} build jobs, exit code~\texttt{0}) with zero \texttt{sorry}, zero \texttt{admit}, zero custom \texttt{axiom} declarations, and zero \texttt{unsafe}/\texttt{implemented\_by} escapes. All $39$ audited declarations pass \texttt{\#print axioms} depending exclusively on Lean's three standard classical axioms \texttt{[propext, Classical.choice, Quot.sound]}.
+
+\paragraph{Important verification boundary.}
+Only the specific Lean declarations listed as ``Fully verified'' in Table~\ref{tab:sm-lean} are machine-checked by the Lean~4 kernel; the manuscript as a whole is \emph{not} fully formalized. In particular, Propositions~2.1, 2.2(b), 2.3, and~4.4, Remark~3.2, Lemma~4.2, Theorem~4.5 (assembly), the numerical rounding in Corollary~5.3, and the external regularity/convergence invocation in Corollary~5.4 remain pen-and-paper proofs (verified numerically/symbolically in Python where applicable, and explicitly itemized for independent human review in \nolinkurl{docs/verification_boundary_and_open_problems.md}). Furthermore, Lean kernel checking verifies logical validity of the Lean statements themselves, not automatic equivalence with informal prose; human inspection of the Lean type signatures in \texttt{Theorem2Probabilistic.lean} and \texttt{Theorem4Probabilistic.lean} remains essential.
+
+\paragraph{Legacy Lean declaration naming.}
+The Lean declaration identifiers retain earlier working-draft numbering (\nolinkurl{theorem1b_*}, \nolinkurl{theorem2_*}, \nolinkurl{lemma31_*}, \nolinkurl{lemma33_*}, \nolinkurl{lemma41_*}, \nolinkurl{lemma43_*}, \nolinkurl{theorem4_*}, \nolinkurl{corollary41_*}, and \nolinkurl{proposition41_prime_*}). Table~\ref{tab:sm-lean} gives the exact correspondence between every numbered result in \texttt{main.pdf} and its Lean~4 counterpart.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Complete Lean~4 (\texttt{v4.35.0}) verification boundary for all numbered results in \texttt{main.pdf}. Legacy Lean declaration names map directly to the main-text numbering in column~1.}
+  \label{tab:sm-lean}
+  \scriptsize
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{@{}llll@{}}
+    \toprule
+    Main Manuscript Result & Primary Lean Declaration(s) & Status & Verification Scope / Notes \\
+    \midrule
+    Proposition~2.1 & --- & Pen-and-paper & Classical (Robinson 1981; Dolgopolik 2023) + 4-pt counterexample. \\
+    Proposition~2.2 & \texttt{theorem1b\_counterexample\_constant}, & Partial & Cancellation counterexample \& part~(a) verified; \\
+      & \texttt{theorem1b\_class\_not\_weakly\_convex} & & general $K(\beta; E) < 0$ in part~(b) is pen-and-paper. \\
+    Proposition~2.3 & --- & Pen-and-paper & Diagnostic active-set stability radius ($d=1$ vs.\ $d \ge 2$). \\
+    \textbf{Theorem~3.1} & \texttt{theorem2\_gaussian\_remainder\_bounds}, & \textbf{Fully verified} & Zero extra hypotheses; arbitrary finite-dim $E$ ($d \ge 1$), \\
+      & \texttt{theorem2\_unconditional\_global\_sharpness}, & & incl.\ $\beta_1^* = \beta_2^*$ and collinear cases. \\
+      & \texttt{theorem2\_global\_quadratic\_norm\_bound} & & \\
+    Remark~3.2 & --- & Pen-and-paper & Phase-retrieval decoupling \& $(e_1,-e_1),(e_2,-e_2)$ polar check. \\
+    Lemma~4.1 & \texttt{lemma31\_pointwise\_flip\_decomp} & \textbf{Fully verified} & Arbitrary real inner product space $E$. \\
+    Lemma~4.2 & --- & Pen-and-paper & Used only in Theorem~4.5 (not in Theorem~5.1). \\
+    \textbf{Lemma~4.3} & \texttt{lemma33\_gaussian\_bathtub} & \textbf{Fully verified} & True \texttt{stdGaussian E} integral, all $p \in [0, 1]$. \\
+    Proposition~4.4, Theorem~4.5 & Components (Lemmas~4.1 and~4.3) & Partial & Population assembly and 2D cone integrals pen-and-paper. \\
+    \textbf{Theorem~5.1} & \texttt{theorem4\_unconditional\_probabilistic}, & \textbf{Fully verified} & Exact eq.~(5.1), both $\Lonenorm{\cdot}$ \& $\Fnorm{\cdot}$, global $2$-Lipschitz, \\
+      & \texttt{theorem4\_from\_pi\_min} & & simultaneous $\forall \xi$ on $S_{\mathrm{bad}}$, Part~(3) half-radius distance; $\pi_{\min}$ bridge. \\
+    Corollary~5.3 & \texttt{corollary41\_exact\_identities} & Partial & Exact symbolic identities in Lean; $3400d$ numeric bound in Python. \\
+    Corollary~5.4 & \texttt{(A1)} \& isolation via Theorem~5.1 & Partial & \texttt{(A2)} and convergence follow Charisopoulos--Davis (2024). \\
+    \textbf{Proposition~5.5} & \texttt{proposition41\_prime\_breakdown\_necessity} & \textbf{Fully verified} & True \texttt{iidStdGaussian E m} tail bound. \\
+    Lemma~5.6 & \texttt{prob\_operator\_norm\_event} & \textbf{Fully verified} & Includes volumetric sphere covering \texttt{exists\_sphere\_eps\_net}. \\
+    Lemma~5.7 & \texttt{lemma41\_gaussian\_mgf}, \texttt{lemma41\_empirical\_tails}, & \textbf{Fully verified} & Exact symmetrization MGF and $(\gamma/8)$-net union bound. \\
+      & \texttt{prob\_cone\_net\_event} & & \\
+    Lemma~5.8 & \texttt{lemma43\_part1\_scale\_free\_domination}, & \textbf{Fully verified} & Full 2D polar moment bounds, Bernstein MGF, and $(\eta/4)$-net. \\
+      & \texttt{lemma43\_gaussian\_moments}, \texttt{prob\_flip\_net\_event} & & \\
+    Lemmas~A.1--A.3 & \texttt{theorem2\_wedge\_trig\_integral}, & \textbf{Fully verified} & Elementary analytic/rational auxiliary lemmas. \\
+      & \texttt{thirteen\_pow\_d\_mul\_chisq\_le}, \texttt{lemma43\_moment\_induction} & & \\
+    \bottomrule
+  \end{tabular}}
+\end{table}
+
+\paragraph{Module layout and reproduction commands.}
+The Lean package consists of root module \texttt{lean/Research107.lean} and 11 submodules under \texttt{lean/Research107/}:
+\begin{itemize}\raggedright
+  \item \emph{Deterministic and population layer:} \texttt{Definitions.lean}, \texttt{Deterministic.lean}, \texttt{Population.lean}, \texttt{Concentration.lean}, \texttt{MainTheorem.lean}.
+  \item \emph{Probabilistic Gaussian layer:} \texttt{GaussianModel.lean}, \texttt{GaussianOperatorNorm.lean}, \texttt{ConeConcentration.lean}, \texttt{FlipConcentration.lean}, \texttt{Theorem2Probabilistic.lean}, \texttt{Theorem4Probabilistic.lean}.
+\end{itemize}
+To reproduce the build and verify zero \texttt{sorry}s and all $39$ axiom checks locally (with \texttt{elan} installed):
+{\small
+\begin{verbatim}
+cd lean
+lake exe cache get
+lake build
+grep -rnE '^\s*(sorry|admit)\b|^axiom |unsafe |implemented_by' \
+  Research107/ Research107.lean
+\end{verbatim}
+}
+In \texttt{theorem4\_unconditional\_probabilistic}, the Lean conclusion states
+\[
+  1 - \mathrm{ofReal}(\delta_{\mathrm{fail}}) \le \texttt{iidStdGaussian E m Good}
+\]
+via the explicit Borel bad-event union $B_{\mathrm{all}} = B_{\mathrm{active}} \cup B_{\mathrm{op}} \cup B_{\mathrm{cone}} \cup B_{\mathrm{flip}}$ satisfying $B_{\mathrm{all}}^{\mathrm{c}} \subseteq \texttt{Good}$ and $\mu(B_{\mathrm{all}}) \le \delta_{\mathrm{fail}}$, matching the measurable event $\mathcal{E} := B_{\mathrm{all}}^{\mathrm{c}}$ in Theorem~5.1 (which depends only on $(A, \beta^*, S_{\mathrm{bad}})$ and holds simultaneously for all corruption vectors $\xi$ supported on $S_{\mathrm{bad}}$).
+
+% ============================================================================
+\section{Experimental Reproducibility Protocol and Additional Tables}
+\label{sec:sm-exp}
+% ============================================================================
+
+All numerical tables and figures in Section~6 of \texttt{main.pdf} are generated deterministically from fixed NumPy \texttt{default\_rng} seeds using three standalone Python scripts under \texttt{experiments/} (requiring only \texttt{numpy}, \texttt{scipy}, and \texttt{sympy} as listed in \texttt{experiments/requirements.txt}):
+{\small
+\begin{verbatim}
+cd experiments
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+python paper_experiments.py      # -> results/paper_experiments.json (Exp. A-D)
+python geom_decay_comparison.py  # -> results/geom_decay_comparison.json (Exp. D)
+python adversarial_tests.py      # -> results/adversarial_results.json (audit)
+\end{verbatim}
+}
+
+\paragraph{Exact model parameters, data generation, and seeds.}
+In all experiments, covariates $a_1, \dots, a_m$ are drawn i.i.d.\ from $\mathcal{N}(0, I_d)$ and clean responses satisfy $y_i^{\mathrm{clean}} = \max_{1 \le j \le r} \ip{a_i}{\beta_j^*}$:
+\begin{itemize}
+  \item \textbf{Experiment~A} (dimension and oversampling sweep; \nolinkurl{paper_experiments.py}, seed \texttt{20261120}): $r = 3$ regular-simplex rows in $\R^d$ with mutual pairwise distance $\Delta_{\min} = 1$, $d \in \{5, 10, 20, 40\}$, $m/d \in \{8, 16, 32, 64\}$, $10$ independent Gaussian draws per $(d, m/d)$ pair, worst-case empirical ratio $\hat\mu$ sampled over isotropic, single-block, and uniform-translation perturbations within $\Fnorm{\Delta} \le 0.2\Delta_{\min}$.
+  \item \textbf{Experiment~B} (outlier fraction sweep; \nolinkurl{paper_experiments.py}, seed \texttt{20261121}): $d = 10, r = 3, m = 500$, $12$ trials per $\alpha \in \{0.00, 0.10, 0.20, 0.30, 0.40, 0.45, 0.48, 0.50, 0.52, 0.55\}$, comparing (i)~oblivious $+1000$ corruptions at radius $0.15$, (ii)~oblivious Proposition~5.5 corruptions $\xi_i = \ip{a_i}{e_1}$, and (iii)~an omniscient-location adversary selecting the $\alpha m$ rows with largest $|\ip{a_i}{e_1}|$.
+  \item \textbf{Experiment~C} ($\Delta_{\min}$-scaling, $r = 2$ scale-free check, and $\kappa$-independence; seed \texttt{20261122}, \nolinkurl{paper_experiments.py}): $d = 10$ with $m = 2000$ for $r = 2$ ($\Delta_{\min} \in \{0.01, 0.05, 0.20, 1.00, 5.00\}$, perturbations up to radius $2.0$) and $m = 600$ for $r = 3$ ($\Delta_{\min}$ sweep at radius $0.15\Delta_{\min}$, plus a $\kappa \in [1.12, 100.00]$ sweep with $\pi_{\min} \ge 0.250$).
+  \item \textbf{Experiment~D} (local subgradient diagnostics and analytical cone curves; \nolinkurl{paper_experiments.py} seed \texttt{20261123} and \nolinkurl{geom_decay_comparison.py} seeds \texttt{20261123--20261127}): $d = 20, r = 3, m = 500$, regular-simplex $\beta^*$ ($\Delta_{\min} = 1$), $\pm 100$ oblivious corruptions on the first $\alpha m$ rows ($\alpha \in \{0.00, 0.20, 0.30, 0.40\}$), $250$ iterations from the same local initialization $\beta^{(0)} = \beta^* + D_0$ with $\Fnorm{D_0} = 0.25$. \texttt{PolyakSGM} uses oracle step size $(f(\beta^{(k)}) - f(\beta^*))/\Fnorm{g^{(k)}}^2$ (stopping early when $f(\beta^{(k)}) - f(\beta^*) \le 10^{-14}$), whereas \texttt{GeomDecaySGM} uses no knowledge of $f(\beta^*)$ or $f^*$, updating $\beta^{(k+1)} = \beta^{(k)} - \lambda_0 q^k g^{(k)}/\Fnorm{g^{(k)}}$ with a single fixed schedule $(\lambda_0, q) = (0.04, 0.95)$ across all $\alpha$ and all seeds.
+\end{itemize}
+
+\paragraph{Expanded numerical tables (Experiments A, C, and D).}
+Table~\ref{tab:sm-exp-extra} reports the $m/d = 8$ column of Experiment~A together with the full Experiment~C sweeps from \nolinkurl{paper_experiments.json}. Table~\ref{tab:sm-geom} reports the 5-seed comparison between oracle-$f(\beta^*)$ \texttt{PolyakSGM} and $f(\beta^*)$-free \texttt{GeomDecaySGM} from \nolinkurl{geom_decay_comparison.json}. Note candidly that both methods in Table~\ref{tab:sm-geom} share the same local oracle initialization $\Fnorm{\beta^{(0)} - \beta^*} = 0.25$, and \texttt{GeomDecaySGM}'s fixed decay factor $q = 0.95$ caps its 250-iteration accuracy around $q^{250} \approx 2.67 \times 10^{-6}$ (giving final distances $\sim 10^{-7}$), whereas oracle-$f(\beta^*)$ \texttt{PolyakSGM} converges faster at low $\alpha$ but exhibits higher cross-seed variance at $\alpha = 0.40$.
+
+\begin{table}[htbp]
+  \centering
+  \footnotesize
+  \caption{Expanded results from \texttt{experiments/results/paper\_experiments.json}. Left: Experiment~A at low oversampling $m/d = 8$ (mean $\pm$ std over 10 trials). Middle: Experiment~C global ratio $f(\beta)/\dist(\beta, X^*)$ for $r = 2$ ($d = 10, m = 2000$) across $\Delta_{\min} \in [0.01, 5.0]$. Right: Experiment~C $r = 3$ local sharpness at radius $0.15\Delta_{\min}$ as $\Delta_{\min}$ scales.}
+  \label{tab:sm-exp-extra}
+  \begin{tabular}{@{}rrr@{}}
+    \toprule
+    $d$ & $m$ & $\hat\mu$ ($m/d=8$) \\
+    \midrule
+     5 &  40 & $0.107 \pm 0.036$ \\
+    10 &  80 & $0.154 \pm 0.021$ \\
+    20 & 160 & $0.179 \pm 0.013$ \\
+    40 & 320 & $0.205 \pm 0.011$ \\
+    \bottomrule
+  \end{tabular}
+  \hspace{0.9em}
+  \begin{tabular}{@{}rr@{}}
+    \toprule
+    $\Delta_{\min}$ & Global $\hat\mu$ ($r=2$) \\
+    \midrule
+    0.01 & 0.4639 \\
+    0.05 & 0.3827 \\
+    0.20 & 0.4264 \\
+    1.00 & 0.4232 \\
+    5.00 & 0.4613 \\
+    \bottomrule
+  \end{tabular}
+  \hspace{0.9em}
+  \begin{tabular}{@{}rrr@{}}
+    \toprule
+    $\Delta_{\min}$ & Radius & $\hat\mu$ ($r=3$) \\
+    \midrule
+    0.05 & 0.0075 & 0.2137 \\
+    0.20 & 0.0300 & 0.2122 \\
+    0.50 & 0.0750 & 0.2108 \\
+    1.00 & 0.1500 & 0.2208 \\
+    5.00 & 0.7500 & 0.2231 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \footnotesize
+  \caption{Experiment~D 5-seed comparison (\nolinkurl{experiments/results/geom_decay_comparison.json}, seeds \texttt{20261123--20261127}, $d=20, r=3, m=500$, $250$ iterations, $\pm 100$ oblivious outliers): final distance $\Fnorm{\beta^{(250)} - \beta^*}$ from identical local initialization $\Fnorm{\beta^{(0)} - \beta^*} = 0.25$ for oracle-$f(\beta^*)$ \texttt{PolyakSGM} versus $f(\beta^*)$-free \texttt{GeomDecaySGM} ($\lambda_0 = 0.04, q = 0.95$).}
+  \label{tab:sm-geom}
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{@{}rcccc@{}}
+    \toprule
+    $\alpha$ & \texttt{PolyakSGM} (median) & \texttt{PolyakSGM} [min, max] & \texttt{GeomDecaySGM} (median) & \texttt{GeomDecaySGM} [min, max] \\
+    \midrule
+    0.00 & $2.76 \times 10^{-14}$ & $[2.58 \times 10^{-14},\; 3.17 \times 10^{-14}]$ & $8.99 \times 10^{-8}$ & $[2.55 \times 10^{-8},\; 9.22 \times 10^{-8}]$ \\
+    0.20 & $1.88 \times 10^{-13}$ & $[3.05 \times 10^{-14},\; 1.67 \times 10^{-8}]$ & $6.33 \times 10^{-8}$ & $[5.67 \times 10^{-8},\; 7.42 \times 10^{-8}]$ \\
+    0.30 & $1.76 \times 10^{-11}$ & $[1.78 \times 10^{-12},\; 1.52 \times 10^{-6}]$ & $8.76 \times 10^{-8}$ & $[7.31 \times 10^{-8},\; 8.97 \times 10^{-8}]$ \\
+    0.40 & $7.02 \times 10^{-7}$ & $[8.53 \times 10^{-14},\; 2.27 \times 10^{-4}]$ & $9.11 \times 10^{-8}$ & $[8.02 \times 10^{-8},\; 9.46 \times 10^{-8}]$ \\
+    \bottomrule
+  \end{tabular}}
+\end{table}
+
+\paragraph{Explicit omniscient-location breakdown at $\alpha = 0.25$.}
+In \nolinkurl{experiments/adversarial_tests.py} (seed~\texttt{4040}), for a Gaussian draw $A \in \R^{m \times d}$, selecting the $\alpha m$ rows with largest $|\ip{a_i}{e_1}|$ (Model~(iv), omniscient support) at $\alpha = 0.25$ and setting $\xi_i = \ip{a_i}{e_1}$ yields $\sum_{i \in S_{\mathrm{bad}}} |\ip{a_i}{e_1}| > \sum_{i \notin S_{\mathrm{bad}}} |\ip{a_i}{e_1}|$, because the top $25\%$ tail of $|Z|$ ($Z \sim \mathcal{N}(0, 1)$, threshold $z_{0.25} = \Phi^{-1}(0.875) \approx 1.1503$) carries fraction
+\[
+  \frac{\E[|Z|\,\ind_{\{|Z| \ge z_{0.25}\}}]}{\E[|Z|]} = e^{-z_{0.25}^2 / 2} \approx 0.516 > \frac{1}{2}
+\]
+of the total $\ell_1$ mass. Hence uniform translations $\tilde\beta(t) = \beta^* + t e_1$ strictly decrease $f$ for all $t \in (0, 1]$ (in the seed-\texttt{4040} instance, $f(\tilde\beta(t)) - f(\beta^*) = -0.011841\,t < 0$), breaking local optimality of $\beta^*$ at $\alpha = 0.25$ and confirming that oblivious support selection in Theorem~5.1 is essential for the $\alpha < 1/2$ threshold.
+
+\end{document}

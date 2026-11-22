@@ -1,37 +1,66 @@
-\documentclass[11pt,a4paper]{article}
+\documentclass[11pt]{article}
 
 \usepackage[margin=1in]{geometry}
-\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,amsfonts,amsthm,mathtools}
+\usepackage{graphicx}
 \usepackage{booktabs}
-\usepackage{array}
 \usepackage{enumitem}
+\setlist[enumerate]{leftmargin=.35in, itemsep=2pt, topsep=4pt}
+\setlist[itemize]{leftmargin=.35in, itemsep=2pt, topsep=4pt}
+\usepackage[numbers,sort&compress]{natbib}
 \usepackage{xcolor}
-\usepackage{hyperref}
-\usepackage[capitalize,nameinlink]{cleveref}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
 \usetikzlibrary{pgfplots.groupplots}
+\usepackage[colorlinks=true,linkcolor=blue!55!black,citecolor=teal!60!black,urlcolor=blue!55!black]{hyperref}
+\usepackage[nameinlink,capitalize,noabbrev]{cleveref}
 
 \hypersetup{
-  colorlinks=true,
-  linkcolor=blue!60!black,
-  citecolor=green!45!black,
-  urlcolor=blue!70!black
+  pdftitle={Sharp Growth and Outlier-Robust Local Recovery in l1 Max-Linear Regression},
+  pdfauthor={Haixin Huang},
+  pdfsubject={Research Preprint (Not Peer-Reviewed)},
+  pdfkeywords={max-linear regression, robust statistical estimation, sharp growth, nonsmooth nonconvex optimization, least absolute deviations, adversarial outliers, formal verification}
 }
 
-% Theorem environments
-\numberwithin{equation}{section}
+% Theorem environments sharing a per-section counter (matches exact numbering across versions)
+\theoremstyle{plain}
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{corollary}[theorem]{Corollary}
-\theoremstyle{definition}
-\newtheorem{definition}[theorem]{Definition}
 \theoremstyle{remark}
 \newtheorem{remark}[theorem]{Remark}
 \newtheorem{example}[theorem]{Example}
 
-% Macros
+% TeX Live 2025/2026 cleveref + amsthm shared-counter alias fix
+\AddToHook{env/lemma/begin}{\crefalias{theorem}{lemma}}
+\AddToHook{env/proposition/begin}{\crefalias{theorem}{proposition}}
+\AddToHook{env/corollary/begin}{\crefalias{theorem}{corollary}}
+\AddToHook{env/remark/begin}{\crefalias{theorem}{remark}}
+\AddToHook{env/example/begin}{\crefalias{theorem}{example}}
+
+\newcommand{\creflastconjunction}{, and~}
+\crefname{theorem}{Theorem}{Theorems}
+\Crefname{theorem}{Theorem}{Theorems}
+\crefname{lemma}{Lemma}{Lemmas}
+\Crefname{lemma}{Lemma}{Lemmas}
+\crefname{proposition}{Proposition}{Propositions}
+\Crefname{proposition}{Proposition}{Propositions}
+\crefname{corollary}{Corollary}{Corollaries}
+\Crefname{corollary}{Corollary}{Corollaries}
+\crefname{remark}{Remark}{Remarks}
+\Crefname{remark}{Remark}{Remarks}
+\crefname{section}{Section}{Sections}
+\Crefname{section}{Section}{Sections}
+\crefname{subsection}{Subsection}{Subsections}
+\Crefname{subsection}{Subsection}{Subsections}
+
+\numberwithin{equation}{section}
+
+% Mathematical macros
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\N}{\mathbb{N}}
 \newcommand{\E}{\mathbb{E}}
@@ -49,116 +78,92 @@
 \newcommand{\Lonenorm}[1]{\|#1\|_{1,2}}
 \newcommand{\opnorm}[1]{\|#1\|_{\mathrm{op}}}
 
-\title{\textbf{Sharp Growth and Outlier-Robust Local Recovery\\ in $\ell_1$ Max-Linear Regression}}
-\author{Research Preprint\thanks{AI-assisted research preprint; not peer-reviewed. Mathematical and novelty review ongoing. Companion Lean~4 formal verification code (\texttt{lean/}), reproducible experiment scripts (\texttt{experiments/}), and audit/AI-contribution records (\texttt{docs/}) are archived alongside this manuscript; see Appendix~\ref{app:formalization} and \texttt{paper/FORMALIZATION.md}.}}
-\date{November 2026}
+\title{\bfseries Sharp Growth and Outlier-Robust Local Recovery in $\ell_1$ Max-Linear Regression\thanks{Research preprint (not peer-reviewed). Companion Supplementary Materials (\texttt{supplement.pdf}), Lean~4 formal verification package, and reproducible experiment scripts are archived alongside this manuscript.}}
+
+\author{Haixin Huang\thanks{Independent Researcher, Naples, Italy. Email: \texttt{huanghaixin061028@gmail.com}. ORCID: \url{https://orcid.org/0009-0005-5243-0680}.}}
+
+\date{November 22, 2026}
 
 \begin{document}
+
 \maketitle
 
 \begin{abstract}
-We study the variational geometry of the nonconvex, nonsmooth $\ell_1$ empirical risk for max-linear regression,
-\[
-  f(\beta) = \frac{1}{m}\sum_{i=1}^m \Bigl|y_i - \max_{1 \le j \le r} \ip{a_i}{\beta_j}\Bigr|,
-  \qquad \beta = (\beta_1,\dots,\beta_r) \in \R^{r \times d},
-\]
-under i.i.d.\ standard Gaussian covariates $a_i \sim \mathcal{N}(0, I_d)$ and sparse adversarial corruptions. Unlike quadratic phase retrieval and bilinear matrix sensing, this objective is not weakly convex in general; nevertheless, Charisopoulos and Davis (\emph{Math.\ Oper.\ Res.}, 2024, Section~5.2.2) observed rapid dimension-independent convergence of Polyak-type subgradient methods on $f$ and left the verification of its quantitative sharp growth property open. We clarify first that for fixed finite data, qualitative local sharpness holds unconditionally by classical polyhedral error bound theory, whereas the statistical question requires dimension-free growth on a macroscopic neighborhood independent of $(m,d)$.
-
-We establish three main quantitative results. First, for $r = 2$ components, an exact antipodal pairing argument yields a closed-form one-sided population remainder bound and a \emph{global, scale-free} sharp growth inequality $F(\beta) \ge \frac{\sqrt{2}-1}{\sqrt{\pi}}\,\dist(\beta, X_{\mathrm{pop}}^*)$ on all of $\R^{2 \times d}$, holding uniformly even as $\beta_1^* \to \beta_2^*$. Second, for arbitrary $r \ge 2$, we prove local population sharp growth with active-cone conditioning modulus $\alpha_j \ge \frac{\sqrt{2\pi}}{6}\pi_j^2$, demonstrating a full factor-of-$\pi_j$ conditioning advantage over the $\Theta(\pi_j^3)$ Gram eigenvalues governing $\ell_2$ max-affine regression. Third, for finite Gaussian samples with any fixed oblivious outlier support of fraction $\alpha \in [0, 1/2)$ and arbitrary (possibly unbounded, data-dependent) corruption magnitudes, we prove that with high probability $f$ satisfies uniform macroscopic sharp growth $f(\beta) - f(\beta^*) \ge \frac{(1-2\alpha)\alpha_{\min}}{4}\Lonenorm{\beta - \beta^*} \ge \frac{(1-2\alpha)\alpha_{\min}}{4}\Fnorm{\beta - \beta^*}$ and global $2$-Lipschitzness, with explicit constants independent of the pairwise separation condition number $\kappa = \Delta_{\max}/\Delta_{\min}$. A matching finite-sample converse shows that $\alpha < 1/2$ is necessary for local optimality of $\beta^*$ in this oblivious-support model, whereas an omniscient adversary choosing outlier locations after seeing the covariates can already break local optimality at $\alpha = 0.25$. Our main global two-component theorem, Gaussian bathtub inequality, finite-sample statistical sharpness theorem, and breakdown converse are additionally machine-checked in Lean~4 (\texttt{v4.35.0}) with zero \texttt{sorry}s and only standard axioms.
-\end{abstract}
+We analyze the statistical and variational geometry of the nonconvex, nonsmooth $\ell_1$ empirical risk for max-linear regression, $f(\beta) = \frac{1}{m}\sum_{i=1}^m |y_i - \max_{1 \le j \le r} \ip{a_i}{\beta_j}|$, under i.i.d.\ standard Gaussian covariates $a_i \sim \mathcal{N}(0, I_d)$ and sparse adversarial corruptions. Unlike squared-$\ell_2$ max-affine estimators, which break down under gross outliers and suffer from a $\Theta(\pi_{\min}^3)$ active-cone Gram eigenvalue bottleneck, the $\ell_1$ risk is non-weakly-convex yet exhibits favorable first-order geometry. Our main result proves that for any $r \ge 2$ and any fixed oblivious outlier support of fraction $\alpha \in [0, 1/2)$, with high probability $f$ satisfies uniform macroscopic sharp growth $f(\beta) - f(\beta^*) \ge \frac{(1-2\alpha)\alpha_{\min}}{4}\Lonenorm{\beta - \beta^*}$ and global $2$-Lipschitzness simultaneously for all (possibly unbounded, data-dependent) corruption magnitudes, with explicit constants independent of the separation condition number $\kappa = \Delta_{\max}/\Delta_{\min}$ and free of $\log(m/d)$ factors. This resolves the quantitative Gaussian sharp-growth question left open by Charisopoulos and Davis (2024) in the local macroscopic regime, while a matching finite-sample converse shows $\alpha < 1/2$ is sharp under oblivious support. We further prove a closed-form $r = 2$ population remainder bound yielding the global, scale-free lower bound $F(\beta) \ge \frac{\sqrt{2}-1}{\sqrt{\pi}}\dist(\beta, X_{\mathrm{pop}}^*)$ and a dimension-free Gaussian bathtub inequality establishing a $\Theta(\pi_j^2)$-versus-$\Theta(\pi_j^3)$ conditioning advantage of $\ell_1$ over $\ell_2$ regression. Core statistical and geometric theorems are additionally machine-checked in Lean~4.
 
 \medskip
-\noindent\textbf{Keywords:} max-linear regression, sharp growth, error bounds, nonsmooth nonconvex optimization, least absolute deviations, outlier robustness, formal verification.
+\noindent\textbf{Keywords:} max-linear regression, robust statistical estimation, sharp growth, nonsmooth nonconvex optimization, least absolute deviations, adversarial outliers, formal verification.
 
-\noindent\textbf{MSC 2020:} 90C26, 49J52, 62J02, 68V15.
+\smallskip
+\noindent\textbf{MSC 2020:} 62J02, 90C26, 49J52, 62F35, 68V15.
+\end{abstract}
 
 % ============================================================================
 \section{Introduction}
 \label{sec:intro}
 % ============================================================================
 
-Max-linear (and more generally max-affine) regression models a convex piecewise-linear response as the pointwise maximum of $r$ linear predictors:
+Estimating a convex piecewise-linear function from high-dimensional observations is a canonical structured nonconvex problem in mathematical data science. In \emph{max-linear regression}, the response is modeled as the pointwise maximum of $r$ linear predictors:
 \begin{equation}
   \label{eq:model}
   \hat y(a; \beta) := \max_{1 \le j \le r} \ip{a}{\beta_j},
   \qquad a \in \R^d,\quad \beta = (\beta_1, \dots, \beta_r) \in \R^{r \times d}.
 \end{equation}
-Such models arise in convex piecewise-linear fitting \cite{magnani2009convex}, adaptive convex regression \cite{hannah2013multivariate}, and structured nonconvex statistical estimation \cite{ghosh2022maxaffine,kim2024convex,kim2024firstorder}. Given $m$ covariate-response pairs $(a_i, y_i)_{i=1}^m$, we consider the nonsmooth least absolute deviations ($\ell_1$) empirical risk
+Applications include convex piecewise-linear approximation \cite{magnani2009convex}, adaptive convex regression \cite{hannah2013multivariate}, and high-dimensional statistical parameter recovery \cite{ghosh2022maxaffine,kim2024convex,kim2024firstorder,kanj2026sparse,kanj2026doma}. Given $m$ covariate-response pairs $(a_i, y_i)_{i=1}^m$, we study the least absolute deviations ($\ell_1$) empirical risk
 \begin{equation}
   \label{eq:emp-loss}
   f(\beta) := \frac{1}{m}\sum_{i=1}^m \bigl|y_i - \hat y(a_i; \beta)\bigr|,
 \end{equation}
 with optimal value $f^* := \inf_{\beta \in \R^{r\times d}} f(\beta)$ and solution set $X^* := \argmin_{\beta \in \R^{r \times d}} f(\beta)$.
 
-\paragraph{Motivation from nonsmooth optimization.}
-A central regularity condition for fast convergence of first-order methods on nonsmooth nonconvex objectives is \emph{local sharp growth} (also called linear regularity or metric subregularity): on a neighborhood $U$ of a minimizer $\beta^* \in X^*$,
+\paragraph{Robust statistical recovery and nonsmooth sharpness.}
+Existing high-dimensional recovery theory for general $r$-component max-linear, max-affine, and difference-of-max-affine regression focuses predominantly on the squared $\ell_2$ loss under sub-Gaussian noise---covering alternating minimization \cite{ghosh2022maxaffine}, convex programming \cite{kim2024convex}, first-order gradient methods \cite{kim2024firstorder}, sparse estimation \cite{kanj2026sparse}, and adaptive block gradient descent \cite{kanj2026doma}. While these analyses achieve $O(d \cdot \operatorname{poly}(r, \pi_{\min}^{-1}))$ sample complexity, squared-$\ell_2$ estimators break down under a single gross outlier, often depend on the pairwise separation condition number $\kappa := \Delta_{\max}/\Delta_{\min}$, and are constrained by a $\Theta(\pi_{\min}^3)$ active-cone Gram eigenvalue bottleneck.
+
+To achieve resilience against gross sparse corruptions, it is natural to turn to the $\ell_1$ objective~\eqref{eq:emp-loss}. In nonsmooth nonconvex estimation, local recovery and fast first-order convergence are governed by \emph{local sharp growth} (metric subregularity): on a neighborhood $U$ of a ground-truth parameter $\beta^* \in X^*$,
 \begin{equation}
   \label{eq:sharp-growth}
   f(\beta) - f^* \ge \mu\,\dist(\beta, X^*) \qquad \forall \beta \in U,
 \end{equation}
-for a constant $\mu > 0$. When $f$ is both sharp and $L$-Lipschitz, the Polyak subgradient method (\texttt{PolyakSGM}) \cite{polyak1969minimization} and geometric step-decay schemes \cite{davis2018subgradient,davis2024stochastic} converge linearly at a rate governed by the condition number $\kappa_{\mathrm{opt}} := L/\mu$, provided the iterates remain inside the basin of sharpness. For \emph{weakly convex} sharp problems—such as quadratic $\ell_1$ phase retrieval \cite{duchi2019solving,davis2020nonsmooth} and $\ell_1$ low-rank matrix recovery \cite{charisopoulos2021lowrank}—this framework yields dimension-free finite-sample guarantees.
+with modulus $\mu > 0$. Combined with global $L$-Lipschitzness,~\eqref{eq:sharp-growth} enables linear convergence of Polyak-type \cite{polyak1969minimization} and geometrically decaying subgradient schemes \cite{davis2018subgradient,davis2024stochastic} at a dimension-free rate determined by $L/\mu$. For \emph{weakly convex} objectives such as quadratic $\ell_1$ phase retrieval \cite{duchi2019solving,davis2020nonsmooth} and $\ell_1$ low-rank matrix recovery \cite{charisopoulos2021lowrank}, this sharp-growth paradigm yields strong outlier-robust statistical guarantees.
 
-However, the $\ell_1$ max-linear objective~\eqref{eq:emp-loss} is \emph{not weakly convex} in general (Proposition~\ref{prop:non-weak-convex}): a single summand $|y_i - \hat y(a_i; \beta)|$ with $\hat y(a_i; \beta) < y_i$ at an active tie exhibits a concave V-shaped kink of curvature $-\infty$, and although opposite-sign ties can cancel across samples, $f$ fails to be locally weakly convex whenever the net directional slope jump $K(\beta; E) < 0$. To handle sharp semismooth objectives beyond weak convexity, Charisopoulos and Davis \cite{charisopoulos2024superpolyak} introduced \texttt{SuperPolyak}, proving local linear convergence of \texttt{PolyakSGM} and local superlinear convergence of \texttt{SuperPolyak} under two local regularity assumptions: sharp growth \texttt{(A1)} and semismoothness along an active manifold \texttt{(A2)}. In Section~5.2.2 of \cite{charisopoulos2024superpolyak}, they tested \texttt{PolyakSGM} and \texttt{SuperPolyak} on Gaussian $\ell_1$ max-linear regression and observed rapid dimension-independent convergence, leaving the rigorous verification of sharp growth~\eqref{eq:sharp-growth} for~\eqref{eq:emp-loss} open.
+By contrast,~\eqref{eq:emp-loss} is \emph{not weakly convex} in general (\cref{prop:non-weak-convex}): an under-predicted sample ($\hat y(a_i; \beta) < y_i$) at an active tie produces a concave V-shaped kink of curvature $-\infty$. To address non-weakly-convex sharp problems, Charisopoulos and Davis \cite{charisopoulos2024superpolyak} established local linear convergence of \texttt{PolyakSGM} and local superlinear convergence of \texttt{SuperPolyak} under sharp growth~\texttt{(A1)} and $(b)$-regularity~\texttt{(A2)} ($|f(x) + \ip{v}{y - x} - f^*| \le C_{(b)}\norm{y - x}^{1 + \eta}$ for $v \in \partial f(x), y \in P_{X^*}(x)$). In Section~5.2.2 of \cite{charisopoulos2024superpolyak}, they observed rapid dimension-independent convergence on Gaussian $\ell_1$ max-linear regression, noted that semialgebraicity implies~\texttt{(A2)} whenever the solution set is isolated, and explicitly left the verification of~\texttt{(A1)} open.
 
-\paragraph{Clarifying the deterministic versus statistical question.}
-A subtle point is worth isolating upfront. If one asks purely qualitatively whether, for an \emph{arbitrary fixed} finite dataset $(a_i, y_i)_{i=1}^m$, there exists \emph{some} $\mu > 0$ and \emph{some} neighborhood $U$ of $X^*$ satisfying~\eqref{eq:sharp-growth}, the answer is already unconditionally affirmative by Robinson's polyhedral multifunction theorem \cite{robinson1981some} and its modern refinements \cite{gowda1996analysis,pang1997error,dolgopolik2023nonlocal} (Proposition~\ref{prop:deterministic-eb}). Yet the resulting Hoffman-type constant depends arbitrarily badly on the data, and under Gaussian designs in dimension $d \ge 2$ the naive active-set stability neighborhood around $\beta^*$ (for $r = 2$) collapses uniformly as $\Theta_{\Prob}(\norm{v}_2/(m\sqrt{d})) \to 0$ whenever $m\sqrt{d} \to \infty$ (Proposition~\ref{prop:stab-decay}, whereas in $d = 1$ it stays constant at $\norm{v}_2/\sqrt{2}$). The substantive mathematical problem posed by \cite{charisopoulos2024superpolyak} is therefore \emph{quantitative and statistical}: establishing high-probability sharp growth~\eqref{eq:sharp-growth} with a \emph{dimension-free} modulus $\mu$ on a \emph{macroscopic} radius $\rho$ independent of $(m, d)$.
+\paragraph{Clarifying deterministic versus statistical sharpness.}
+For any \emph{fixed} finite dataset $(a_i, y_i)_{i=1}^m$, qualitative local sharpness~\eqref{eq:sharp-growth} holds unconditionally for some data-dependent $\mu > 0$ and neighborhood $U$ by classical polyhedral error bound theory \cite{hoffman1952approximate,robinson1981some,gowda1996analysis,pang1997error,dolgopolik2023nonlocal} (\cref{prop:deterministic-eb}). However, Hoffman-type constants degrade arbitrarily with the data, and under Gaussian designs in dimension $d \ge 2$ the naive active-set stability radius around $\beta^*$ (for $r = 2$) collapses uniformly as $\Theta_{\Prob}(\norm{v}_2/(m\sqrt{d})) \to 0$ whenever $m\sqrt{d} \to \infty$ (\cref{prop:stab-decay}). The substantive statistical question is therefore establishing high-probability sharp growth~\eqref{eq:sharp-growth} with a \emph{dimension-free} modulus $\mu$ on a \emph{macroscopic} radius $\rho$ independent of $(m, d)$, together with local isolation of $\beta^*$ in $X^*$.
 
-\paragraph{Relationship to prior literature.}
-Prior statistical analyses of general $r$-component max-linear, max-affine, and difference-of-max-affine regression have focused predominantly on the squared $\ell_2$ loss under sub-Gaussian noise—including alternating minimization \cite{ghosh2022maxaffine}, convex relaxations \cite{kim2024convex}, first-order gradient methods \cite{kim2024firstorder}, sparse extensions \cite{kanj2026sparse}, and adaptive block gradient descent for difference-of-max-affine models \cite{kanj2026doma}. Those $\ell_2$ guarantees do not tolerate gross outliers, depend on the separation condition number $\kappa := \Delta_{\max}/\Delta_{\min}$, and suffer from a $\Theta(\pi_{\min}^3)$ active-cone Gram eigenvalue bottleneck.
+\paragraph{Related $\ell_1$ regression and phase-retrieval literature.}
+Deterministic piecewise-linear $\ell_1$ optimization has been studied for Powell's censored LAD estimator \cite{powell1984censored,womersley1986censored} (one free linear block against fixed thresholds) and via DC programming on fixed datasets \cite{bagirov2022robust}, without high-dimensional statistical guarantees. On the statistical $\ell_1$ side, real amplitude phase-retrieval stability has been studied in \cite{eldar2014phase,bandeira2014saving,tan2019phase}, and Kim and Lee \cite{kim2025robustpr} proved local linear contraction of alternating LAD linear programs (\texttt{Robust-AM}) for real amplitude phase retrieval ($y_i = |\ip{a_i}{x^*}| + \xi_i$, the symmetric restriction $\beta_1 = -\beta_2 = x$ of $r = 2$) under Gaussian designs and oblivious sparse outliers (up to $\alpha \le 1/4$ in \cite{kim2025robustpr}) using $m \gtrsim d\log(m/d)$ samples via VC-dimension wedge-flip bounds from \cite{tan2019phase}. Subsequently, Kim, Kanj, and Lee announced an alternating LAD / Gauss--Newton approach for general $r$-piece robust max-affine regression with local convergence guarantees in a conference abstract \cite{kim2024mds} (related to the dissertation \cite{kim2024thesis}); no public paper containing those proofs is available at the time of writing. We note candidly that although such alternating LAD methods target LP contraction rather than variational sharpness for first-order subgradient methods, any finite-sample Gaussian proof for alternating LAD max-affine recovery may rely on analogous signed active-cone $\ell_1$ lower bounds and pairwise flip bounds that could themselves imply local sharp growth of~\eqref{eq:emp-loss}.
 
-Nonconvex piecewise-linear $\ell_1$ regression also has a long optimization history: Womersley \cite{womersley1986censored} characterized Clarke generalized gradients and deterministic local minimizers for Powell's censored LAD estimator \cite{powell1984censored} ($y_i \approx \max(z_i, \ip{a_i}{x})$, a single-block special case with one fixed piece $z_i$), and Bagirov et al.\ \cite{bagirov2022robust} developed deterministic nonsmooth difference-of-convex (DC) algorithms for robust piecewise-linear $\ell_1$ regression on fixed datasets; neither establishes high-dimensional Gaussian sharp growth or finite-sample complexity. On the statistical $\ell_1$ side, Duchi and Ruan \cite{duchi2019solving} and Davis, Drusvyatskiy, and Paquette \cite{davis2020nonsmooth} proved outlier-robust sharp growth for weakly convex \emph{quadratic} phase retrieval ($y_i \approx \ip{a_i}{x^*}^2$). Closer to our piecewise-linear setting, Kim and Lee \cite{kim2025robustpr} analyzed alternating LAD linear programs (\texttt{Robust-AM}) for real \emph{amplitude} phase retrieval ($y_i = |\ip{a_i}{x^*}| + \xi_i$, the symmetric one-vector restriction $\beta_1 = -\beta_2 = x$ of $r=2$), proving local linear contraction of LP iterates under Gaussian design and oblivious sparse outliers (with $\alpha \le 1/4$ in \cite[Theorem~4]{kim2025robustpr}, extended asymptotically toward $1/2$ in \cite[Lemma~6]{kim2024thesis}) using $m \gtrsim \theta^{-2}(d\log(m/d) \vee \log(1/\delta))$ samples. Subsequently, Kim, Kanj, and Lee proposed an alternating LAD linear-programming algorithm (\texttt{RobustPA}) for general $r$-piece max-affine regression in \cite[Chapter~4]{kim2024thesis} (numerical experiments only, without proofs) and announced a local linear convergence analysis in conference abstracts \cite{kim2024mds}; as of November~2026, no public preprint or journal article containing those proofs is available. We emphasize an important methodological caveat: although \texttt{RobustPA} targets alternating LP contraction rather than first-order subgradient methods, any finite-sample convergence proof for \texttt{RobustPA} under Gaussian design and outliers is likely to use analogous active-cone $\ell_1$ lower bounds and pairwise wedge-flip bounds, which could themselves imply local sharp growth of~\eqref{eq:emp-loss}. Our contribution therefore centers on providing an explicit, self-contained, and Lean-verified variational sharp-growth analysis directly addressing Assumption~\texttt{(A1)} of \cite{charisopoulos2024superpolyak} (with zero $\kappa$ and $\log(m/d)$ dependence in the flip bound), together with the global scale-free $r=2$ population theorem (Theorem~\ref{thm:pop-r2}) and the $\ell_1$-vs.-$\ell_2$ cone conditioning separation (Proposition~\ref{prop:l1-vs-l2}).
-
-\paragraph{Summary of contributions.}
-\begin{enumerate}[leftmargin=*,nosep]
-  \item \textbf{Structural diagnosis (Section~\ref{sec:prelim}).} We clarify how Robinson--Dolgopolik theory settles qualitative local sharpness for any finite dataset (Proposition~\ref{prop:deterministic-eb}), give an exact directional V-kink criterion for local non-weak-convexity (Proposition~\ref{prop:non-weak-convex}) correcting a naive single-sample tie condition, and prove exact non-asymptotic two-sided tail bounds showing that the active-set stability radius remains $\norm{v}_2/\sqrt{2}$ a.s.\ when $d = 1$ but collapses uniformly as $\Theta_{\Prob}(\norm{v}_2/(m\sqrt{d}))$ for all $d \ge 2$ and $m \ge 1$ (Proposition~\ref{prop:stab-decay}).
-  \item \textbf{Global scale-free population sharpness for $r=2$ (Section~\ref{sec:pop-r2}).} Via an exact antipodal pairing identity and 2D polar integration, Theorem~\ref{thm:pop-r2} proves the one-sided remainder bound
-  \[
-    0 \le \frac{\norm{\Delta_1}_2 + \norm{\Delta_2}_2}{\sqrt{2\pi}} - F(\beta^* + \Delta)
-      \le \frac{\norm{v}_2 + \norm{v + \delta}_2 - \norm{2v + \delta}_2}{\sqrt{2\pi}}
-      \le \frac{\norm{\delta}_2^2}{2\sqrt{2\pi}\norm{v}_2}
-  \]
-  and deduces the \emph{global, scale-free} sharp growth bound $F(\beta) \ge \frac{\sqrt{2}-1}{\sqrt{\pi}}\,\dist(\beta, X_{\mathrm{pop}}^*)$ on all of $\R^{2 \times d}$, valid even in the degenerate limit $\beta_1^* = \beta_2^*$.
-  \item \textbf{General-$r$ population geometry and $\ell_1$-vs.-$\ell_2$ conditioning (Section~\ref{sec:pop-genr}).} Combining a deterministic pointwise flip decomposition (Lemma~\ref{lem:flip-decomp}) with a Gaussian bathtub inequality $\alpha_j \ge \frac{\sqrt{2\pi}}{6}\pi_j^2$ (Lemma~\ref{lem:bathtub}), Theorem~\ref{thm:pop-genr} proves dimension-free local population sharpness for arbitrary $r \ge 2$. Proposition~\ref{prop:l1-vs-l2} shows that on narrow 2D cones of probability $p$, $\ell_1$ conditioning scales as $\Theta(p^2)$ versus $\Theta(p^3)$ for $\ell_2$.
-  \item \textbf{Finite-sample sharp growth under oblivious outliers and matching converse (Section~\ref{sec:finite-sample}).} For any $r \ge 2$ and any fixed oblivious outlier support of fraction $\alpha \in [0, 1/2)$, Theorem~\ref{thm:main-finite} establishes high-probability macroscopic sharp growth $f(\beta) - f(\beta^*) \ge \frac{(1-2\alpha)\alpha_{\min}}{4}\Lonenorm{\beta - \beta^*} \ge \frac{(1-2\alpha)\alpha_{\min}}{4}\Fnorm{\beta - \beta^*}$ and global $2$-Lipschitzness simultaneously for \emph{all} (possibly unbounded, data-dependent) corruption values supported on $S_{\mathrm{bad}}$, with explicit constants and zero dependence on $\kappa = \Delta_{\max}/\Delta_{\min}$. For noiseless $r=2$, Corollary~\ref{cor:r2-explicit} gives explicit constants $m \ge 3400d + 480\log(6/\delta)$ and condition number $L/\mu \le 8\sqrt{2\pi} \approx 20.05$. Proposition~\ref{prop:converse} proves a matching finite-sample converse for $\alpha > 1/2$ via uniform translations, and Section~\ref{sec:experiments} contrasts this with an omniscient-location adversary that breaks local optimality already at $\alpha = 0.25$.
-  \item \textbf{Machine-checked Lean~4 verification (Appendix~\ref{app:formalization}).} Theorems~\ref{thm:pop-r2} and~\ref{thm:main-finite}, Lemma~\ref{lem:bathtub}, the $\pi_{\min}$-bridged version of Theorem~\ref{thm:main-finite}, and Proposition~\ref{prop:converse} are formally verified in Lean~4 (\texttt{v4.35.0}, \texttt{mathlib v4.35.0}) directly on multivariate Gaussian probability spaces with zero \texttt{sorry}s and only standard classical axioms. We explicitly document which results are fully formalized versus pen-and-paper.
+\paragraph{Main contributions and organization.}
+Centered on \cref{thm:main-finite}, this paper provides a self-contained, explicit, and Lean-verified variational analysis of~\eqref{eq:emp-loss}:
+\begin{enumerate}
+  \item \textbf{Finite-sample outlier-robust sharp growth and converse (\cref{sec:finite-sample}).} For any $r \ge 2$ and any fixed oblivious outlier support of fraction $\alpha \in [0, 1/2)$, \cref{thm:main-finite} proves high-probability macroscopic sharp growth $f(\beta) - f(\beta^*) \ge \frac{(1-2\alpha)\alpha_{\min}}{4}\Lonenorm{\beta - \beta^*} \ge \frac{(1-2\alpha)\alpha_{\min}}{4}\Fnorm{\beta - \beta^*}$ and global $2$-Lipschitzness simultaneously for \emph{all} (possibly unbounded, data-dependent) corruption values, with explicit constants free of both $\kappa$ and $\log(m/d)$. \Cref{cor:r2-explicit,cor:superpolyak} specialize constants for $r = 2$ and clarify the exact link (and initialization-radius caveats) to \cite{charisopoulos2024superpolyak}. \Cref{prop:converse} proves a matching converse for $\alpha > 1/2$, while \cref{sec:experiments} contrasts oblivious and omniscient-location adversaries numerically.
+  \item \textbf{Exact $r = 2$ population remainder and global scale-free sharpness (\cref{sec:pop-r2}).} Via antipodal pairing and 2D polar integration, \cref{thm:pop-r2} proves a closed-form one-sided population remainder bound and deduces the global, scale-free lower bound $F(\beta) \ge \frac{\sqrt{2}-1}{\sqrt{\pi}}\dist(\beta, X_{\mathrm{pop}}^*)$ on all of $\R^{2 \times d}$, persisting without degradation as $\beta_1^* \to \beta_2^*$, while \cref{rem:phase-retrieval-split} clarifies its exact relation to real amplitude phase retrieval.
+  \item \textbf{General-$r$ population geometry and $\ell_1$-vs.-$\ell_2$ conditioning (\cref{sec:pop-genr}).} Combining a deterministic pointwise flip decomposition (\cref{lem:flip-decomp}) with a Gaussian bathtub inequality $\alpha_j \ge \frac{\sqrt{2\pi}}{6}\pi_j^2$ (\cref{lem:bathtub}), \cref{thm:pop-genr} establishes dimension-free local population sharpness for arbitrary $r \ge 2$, and \cref{prop:l1-vs-l2} proves a full factor-of-$p$ conditioning advantage of $\ell_1$ ($\Theta(p^2)$) over $\ell_2$ ($\Theta(p^3)$) on narrow cones.
+  \item \textbf{Structural preliminaries and machine-checked Lean~4 verification (\cref{sec:prelim} and Supplement~SM1).} \Cref{sec:prelim} clarifies deterministic error bounds with an explicit four-point non-positively-spanning counterexample (\cref{prop:deterministic-eb}), gives an exact directional V-kink criterion for non-weak-convexity (\cref{prop:non-weak-convex}), and proves exact non-asymptotic collapse of the active-set stability radius for $d \ge 2$ (\cref{prop:stab-decay}). Core results (\cref{thm:pop-r2,thm:main-finite}, \cref{lem:flip-decomp,lem:bathtub,lem:op-norm,lem:cone-conc,lem:flip-conc}, and \cref{prop:converse}) are additionally machine-checked in Lean~4 (\texttt{v4.35.0}, zero \texttt{sorry}s, standard axioms only); detailed verification mappings and full experimental reproducibility tables appear in the Supplementary Materials (Sections~SM1--SM2).
 \end{enumerate}
 
 % ============================================================================
-\section{Problem Formulation and Preliminaries}
+\section{Problem Formulation and Structural Preliminaries}
 \label{sec:prelim}
 % ============================================================================
 
 \subsection{Notation, Norms, and Active Cones}
 \label{sec:notation}
 
-Throughout, $\ip{\cdot}{\cdot}$ and $\norm{\cdot}_2$ denote the Euclidean inner product and norm on $\R^d$, and $\Sph^{d-1} := \{u \in \R^d : \norm{u}_2 = 1\}$ denotes the unit sphere. For parameter tuples $\beta = (\beta_1, \dots, \beta_r) \in \R^{r \times d}$, we use both the Frobenius norm and the stronger block $\ell_{1,2}$ norm:
+Let $\ip{\cdot}{\cdot}$ and $\norm{\cdot}_2$ denote the Euclidean inner product and norm on $\R^d$, and $\Sph^{d-1} := \{u \in \R^d : \norm{u}_2 = 1\}$. For $\beta = (\beta_1, \dots, \beta_r) \in \R^{r \times d}$, define the Frobenius and block $\ell_{1,2}$ norms
 \[
   \Fnorm{\beta} := \Bigl(\sum_{j=1}^r \norm{\beta_j}_2^2\Bigr)^{1/2},
   \qquad
-  \Lonenorm{\beta} := \sum_{j=1}^r \norm{\beta_j}_2.
+  \Lonenorm{\beta} := \sum_{j=1}^r \norm{\beta_j}_2,
 \]
-Clearly $\Fnorm{\beta} \le \Lonenorm{\beta} \le \sqrt{r}\Fnorm{\beta}$, and for any distinct $j \ne k$, $\norm{\beta_j - \beta_k}_2 \le \sqrt{2}\Fnorm{\beta}$. For a matrix $A \in \R^{m \times d}$ with rows $a_1^\top, \dots, a_m^\top$, $\opnorm{A} := \sup_{u \in \Sph^{d-1}} \norm{Au}_2$. We write $[r] := \{1, \dots, r\}$ and denote by $B(\beta^*, \rho) := \{\beta \in \R^{r\times d} : \Fnorm{\beta - \beta^*} \le \rho\}$ the closed Frobenius ball of radius $\rho$.
+so $\Fnorm{\beta} \le \Lonenorm{\beta} \le \sqrt{r}\Fnorm{\beta}$ and $\norm{\beta_j - \beta_k}_2 \le \sqrt{2}\Fnorm{\beta}$ for $j \ne k$. For $A \in \R^{m \times d}$ with rows $a_1^\top, \dots, a_m^\top$, $\opnorm{A} := \sup_{u \in \Sph^{d-1}} \norm{Au}_2$. Write $[r] := \{1, \dots, r\}$ and $B(\beta^*, \rho) := \{\beta \in \R^{r\times d} : \Fnorm{\beta - \beta^*} \le \rho\}$.
 
-Because $\hat y(a; \beta) = \max_{j \in [r]} \ip{a}{\beta_j}$ is invariant under permuting the $r$ blocks $\beta_1, \dots, \beta_r$, the ground-truth parameter $\beta^* = (\beta_1^*, \dots, \beta_r^*)$ is identifiable only up to the permutation orbit
-\[
-  X_{\mathrm{pop}}^* := \bigl\{\pi(\beta^*) : \pi \in S_r\bigr\},
-  \qquad \pi(\beta^*) := (\beta_{\pi(1)}^*, \dots, \beta_{\pi(r)}^*).
-\]
-For any nonempty closed set $S \subseteq \R^{r \times d}$, $\dist(\beta, S) := \inf_{z \in S} \Fnorm{\beta - z}$.
-
-For a fixed ground truth $\beta^* \in \R^{r \times d}$, define the pairwise differences $v_{jk} := \beta_j^* - \beta_k^*$ and minimum/maximum pairwise separations
-\[
-  \Delta_{\min} := \min_{1 \le j < k \le r} \norm{\beta_j^* - \beta_k^*}_2,
-  \qquad
-  \Delta_{\max} := \max_{1 \le j < k \le r} \norm{\beta_j^* - \beta_k^*}_2,
-  \qquad
-  \kappa := \frac{\Delta_{\max}}{\Delta_{\min}} \quad (\text{when }\Delta_{\min}>0).
-\]
-Define the strict polyhedral \emph{active cone} of component $j \in [r]$ by
+Because $\hat y(a; \beta)$ is permutation-invariant, the ground truth $\beta^*$ is identifiable up to the permutation orbit $X_{\mathrm{pop}}^* := \{\pi(\beta^*) : \pi \in S_r\}$, with $\dist(\beta, S) := \inf_{z \in S} \Fnorm{\beta - z}$. Set $v_{jk} := \beta_j^* - \beta_k^*$, $\Delta_{\min} := \min_{1 \le j < k \le r} \norm{v_{jk}}_2$, $\Delta_{\max} := \max_{1 \le j < k \le r} \norm{v_{jk}}_2$, and $\kappa := \Delta_{\max}/\Delta_{\min}$ (when $\Delta_{\min} > 0$). Define the strict polyhedral \emph{active cone}
 \[
   C_j^* := \bigl\{a \in \R^d : \ip{a}{\beta_j^*} > \ip{a}{\beta_k^*} \text{ for all } k \ne j\bigr\}.
 \]
-Under standard Gaussian covariates $a \sim \mathcal{N}(0, I_d)$ with $\Delta_{\min} > 0$, each hyperplane $\{a : \ip{a}{v_{jk}} = 0\}$ has measure zero, so the open cones $C_1^*, \dots, C_r^*$ are pairwise disjoint and partition $\R^d$ up to a null set. Their probabilities and $\ell_1$ directional conditioning moduli are
+Under $a \sim \mathcal{N}(0, I_d)$ with $\Delta_{\min} > 0$, the open cones $C_1^*, \dots, C_r^*$ are pairwise disjoint and partition $\R^d$ up to a null set. Geometrically, $C_j^*$ is the interior of the normal cone of $\operatorname{conv}\{\beta_1^*, \dots, \beta_r^*\}$ at $\beta_j^*$, so $C_j^* \ne \emptyset$ (equivalently $\pi_j > 0$) holds for all $j \in [r]$ iff every $\beta_j^*$ is a strict vertex of $\operatorname{conv}\{\beta_1^*, \dots, \beta_r^*\}$; in particular, $\pi_{\min} > 0$ requires $d \ge 2$ when $r \ge 3$ (while $d = 1, r = 2$ with $\beta_1^* \ne \beta_2^*$ is non-vacuous). Define
 \begin{equation}
   \label{eq:cone-moduli}
   \pi_j := \Prob(a \in C_j^*),
@@ -169,15 +174,7 @@ Under standard Gaussian covariates $a \sim \mathcal{N}(0, I_d)$ with $\Delta_{\m
   \qquad
   \alpha_{\min} := \min_{j \in [r]} \alpha_j.
 \end{equation}
-For $r = 2$ with $\beta_1^* \ne \beta_2^*$, $C_1^*$ and $C_2^*$ are opposite open half-spaces, so $\pi_1 = \pi_2 = 1/2$ and, by symmetry of $\mathcal{N}(0, I_d)$ under $a \mapsto -a$,
-\begin{equation}
-  \label{eq:r2-alpha}
-  \E\bigl[\ind_{C_j^*}(a)\,|\ip{a}{u}|\bigr] = \frac{1}{2}\E\bigl[|\ip{a}{u}|\bigr] = \frac{1}{\sqrt{2\pi}}
-  \qquad \forall u \in \Sph^{d-1},\; j \in \{1, 2\},
-\end{equation}
-hence $\alpha_1 = \alpha_2 = \alpha_{\min} = \frac{1}{\sqrt{2\pi}}$.
-
-The noiseless Gaussian \emph{population loss} is
+For $r = 2$ with $\beta_1^* \ne \beta_2^*$, $C_1^*$ and $C_2^*$ are opposite half-spaces, so $\pi_1 = \pi_2 = 1/2$ and symmetry $a \stackrel{d}{=} -a$ yields $\alpha_1 = \alpha_2 = \alpha_{\min} = \frac{1}{\sqrt{2\pi}}$. The noiseless Gaussian \emph{population loss} is
 \begin{equation}
   \label{eq:pop-loss}
   F(\beta) := \E_{a \sim \mathcal{N}(0, I_d)}\Bigl[\bigl|\hat y(a; \beta) - \hat y(a; \beta^*)\bigr|\Bigr].
@@ -186,135 +183,94 @@ The noiseless Gaussian \emph{population loss} is
 \subsection{Observation and Corruption Models}
 \label{sec:corruption-models}
 
-Given $a_1, \dots, a_m \stackrel{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0, I_d)$, observations follow
-\begin{equation}
-  \label{eq:obs}
-  y_i = \hat y(a_i; \beta^*) + \xi_i, \qquad i = 1, \dots, m,
-\end{equation}
-where $\xi = (\xi_1, \dots, \xi_m) \in \R^m$ is a sparse corruption vector supported on $S_{\mathrm{bad}} \subseteq [m]$ with fraction $\alpha := |S_{\mathrm{bad}}| / m \in [0, 1)$. To avoid any ambiguity about robustness thresholds, we distinguish four progressively stronger models:
-\begin{enumerate}[label=(\roman*),leftmargin=*,nosep]
-  \item \textbf{Noiseless model:} $S_{\mathrm{bad}} = \emptyset$ ($\alpha = 0$, $\xi \equiv 0$), so $f(\beta^*) = f^* = 0$ and $X_{\mathrm{pop}}^* \subseteq X^*$.
-  \item \textbf{Oblivious support with fixed/independent values:} $S_{\mathrm{bad}} \subseteq [m]$ is fixed independently of $A = (a_1, \dots, a_m)$, and $\xi_i$ ($i \in S_{\mathrm{bad}}$) are arbitrary values independent of $A$.
-  \item \textbf{Oblivious support with arbitrary data-dependent values (our main Theorem~\ref{thm:main-finite} model):} $S_{\mathrm{bad}} \subseteq [m]$ is fixed independently of $A$ (or equivalently, chosen before $A$ is drawn), while after observing $A$ and $\beta^*$ an adversary may select \emph{arbitrary, unbounded, data-dependent} corruption values $\xi_i \in \R$ for $i \in S_{\mathrm{bad}}$ (with $\xi_i = 0$ for $i \notin S_{\mathrm{bad}}$).
-  \item \textbf{Omniscient-location adversary:} after observing $A$ and $\beta^*$, an adversary chooses \emph{both} the corrupted index set $S_{\mathrm{bad}}$ of size $\alpha m$ and the values $\xi_i$ ($i \in S_{\mathrm{bad}}$).
+Given $a_1, \dots, a_m \stackrel{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0, I_d)$, observations follow $y_i = \hat y(a_i; \beta^*) + \xi_i$ ($i \in [m]$), where $\xi \in \R^m$ is supported on $S_{\mathrm{bad}} \subseteq [m]$ with fraction $\alpha := |S_{\mathrm{bad}}| / m \in [0, 1)$. We distinguish four progressively stronger corruption models:
+\begin{enumerate}[label=(\roman*)]
+  \item \textbf{Noiseless:} $S_{\mathrm{bad}} = \emptyset$ ($\alpha = 0$, $\xi \equiv 0$), so $f(\beta^*) = f^* = 0$ and $X_{\mathrm{pop}}^* \subseteq X^*$.
+  \item \textbf{Oblivious support, independent values:} $S_{\mathrm{bad}}$ is fixed independently of $A$, and $\xi_i$ ($i \in S_{\mathrm{bad}}$) are independent of $A$.
+  \item \textbf{Oblivious support, arbitrary data-dependent values (\cref{thm:main-finite} model):} $S_{\mathrm{bad}}$ is fixed independently of $A$, while after observing $A$ and $\beta^*$ an adversary chooses \emph{arbitrary, unbounded, data-dependent} values $\xi_i \in \R$ for $i \in S_{\mathrm{bad}}$ ($\xi_i = 0$ for $i \notin S_{\mathrm{bad}}$).
+  \item \textbf{Omniscient-location adversary:} after observing $A$ and $\beta^*$, an adversary chooses \emph{both} $S_{\mathrm{bad}}$ of size $\alpha m$ and the values $\xi_i$ ($i \in S_{\mathrm{bad}}$).
 \end{enumerate}
-Model~(iii) strictly subsumes~(i) and~(ii). As we prove in Theorem~\ref{thm:main-finite} and Proposition~\ref{prop:converse}, under model~(iii) the sharp threshold for local optimality and macroscopic sharp growth at $\beta^*$ is $\alpha < 1/2$. By contrast, under model~(iv), an adversary concentrating corruptions on high-leverage samples breaks local optimality of $\beta^*$ strictly below $1/2$ (demonstrated explicitly at $\alpha = 0.25$ in Section~\ref{sec:experiments}). Moreover, local sharp growth $f(\beta) - f(\beta^*) \ge \mu\Fnorm{\beta - \beta^*}$ on $B(\beta^*, \rho)$ implies that $\beta^*$ is an isolated strict local minimizer and the unique minimizer of $f$ over $B(\beta^*, \rho)$, which is distinct from global exact recovery ($X^* = X_{\mathrm{pop}}^*$) or ruling out higher-valued local minima inside $B(\beta^*, \rho)$.
+Model~(iii) strictly subsumes~(i)--(ii). Under model~(iii), \cref{thm:main-finite} and \cref{prop:converse} show $\alpha < 1/2$ is the sharp threshold for local optimality and macroscopic sharpness at $\beta^*$, whereas under model~(iv) local optimality already breaks below $\alpha = 0.30$ (\cref{sec:experiments}). Local sharp growth $f(\beta) - f(\beta^*) \ge \mu\Fnorm{\beta - \beta^*}$ on $B(\beta^*, \rho)$ implies $\beta^*$ is the unique minimizer over $B(\beta^*, \rho)$, without automatically excluding higher-valued spurious local minima inside $B(\beta^*, \rho)$ or proving global exact recovery ($X^* = X_{\mathrm{pop}}^*$).
 
-\subsection{Deterministic Error Bounds, Non-Weak-Convexity, and Stability Radius Collapse}
+\subsection{Deterministic Error Bounds, Non-Weak-Convexity, and Stability Collapse}
 \label{sec:deterministic-diag}
 
-Before turning to Gaussian designs, we record three structural facts explaining why the quantitative statistical analysis in Sections~\ref{sec:pop-r2}--\ref{sec:finite-sample} is necessary.
-
-\begin{proposition}[Deterministic piecewise-affine error bounds; known theory \cite{robinson1981some,dolgopolik2023nonlocal}]
+\begin{proposition}[Deterministic piecewise-affine error bounds]
   \label{prop:deterministic-eb}
-  For any finite dataset $(a_i, y_i)_{i=1}^m \subset \R^d \times \R$ and any $r \ge 1$, the empirical risk $f$ in~\eqref{eq:emp-loss} is continuous and piecewise affine, attains its minimum ($X^* \ne \emptyset$ automatically), and admits constants $\tau > 0$ and $\mu_{\mathrm{det}} > 0$ (depending on the data) such that
+  Given $(a_i, y_i)_{i=1}^m \subset \R^d \times \R$ and any $r \ge 1$, the empirical risk $f$ in~\eqref{eq:emp-loss} is continuous and piecewise affine, attains its minimum ($X^* \ne \emptyset$), and admits data-dependent constants $\tau > 0$ and $\mu_{\mathrm{det}} > 0$ (by \cite{robinson1981some,dolgopolik2023nonlocal}) such that
   \[
     f(\beta) - f^* \ge \mu_{\mathrm{det}}\,\dist(\beta, X^*)
     \qquad \forall \beta \in \R^{r\times d} \text{ with } f(\beta) - f^* < \tau.
   \]
-  In particular, $f$ satisfies a uniform local error bound on a neighborhood of $X^*$. Moreover, if $\{a_i\}_{i=1}^m$ positively spans $\R^d$ (i.e., $\max_{i \in [m]} \ip{a_i}{v} > 0$ for all $v \in \R^d \setminus \{0\}$), then $f$ is coercive and satisfies a \emph{global} error bound on all of $\R^{r \times d}$; without positive spanning, global error bounds can fail and spurious local minimizers can exist.
+  If $\{a_i\}_{i=1}^m$ positively spans $\R^d$ ($\max_{i \in [m]} \ip{a_i}{v} > 0$ for all $v \ne 0$), then $f$ is coercive and satisfies a global error bound on $\R^{r \times d}$; without positive spanning, coercivity and global error bounds can fail.
 \end{proposition}
 \begin{proof}
-Since $f$ is a finite sum of absolute values of piecewise-affine functions, its epigraph $\operatorname{epi}(f)$ is a finite union of convex polyhedra, and $f \ge 0$ is bounded below. By standard polyhedral programming, a piecewise-affine function bounded below on $\R^{r\times d}$ attains its infimum, so $X^* \ne \emptyset$. The multifunction $M(t) := \{\beta : f(\beta) - f^* \le t\}$ is polyhedral with $M(0) = X^* \ne \emptyset$; Robinson's local upper Lipschitz theorem \cite[Proposition~1]{robinson1981some} (and Dolgopolik's explicit sublevel bound \cite[Theorem~1 and Proposition~1]{dolgopolik2023nonlocal}) immediately yields $\tau, \mu_{\mathrm{det}} > 0$ with $f(\beta) - f^* \ge \mu_{\mathrm{det}}\dist(\beta, X^*)$ whenever $f(\beta) - f^* < \tau$. If $\{a_i\}$ positively spans $\R^d$, then for any $\beta$ with $\max_j \norm{\beta_j}_2 \to \infty$, letting $j_0$ achieve the largest norm and $u = \beta_{j_0}/\norm{\beta_{j_0}}_2$, some $a_i$ has $\ip{a_i}{u} \ge c_0 > 0$, whence $\hat y(a_i; \beta) \ge c_0 \norm{\beta_{j_0}}_2 \to \infty$ and $f(\beta) \to \infty$; coercivity then implies a global error bound by \cite[Corollary~2]{dolgopolik2023nonlocal}. Without positive spanning, e.g.\ when all $a_i$ lie in $\{x_1 > 0\} \subset \R^2$, taking $\beta_2 = (-t, 0)$ with $t \to +\infty$ leaves $\hat y(a_i; \beta)$ unchanged while $\dist(\beta, X^*) \to \infty$, so no global error bound can hold.
+Because $f \ge 0$ is continuous and piecewise affine, it attains its minimum ($X^* \ne \emptyset$). Applying \cite[Proposition~1]{robinson1981some} and \cite[Theorem~4 and Proposition~1]{dolgopolik2023nonlocal} to $f - f^*$ yields $\tau, \mu_{\mathrm{det}} > 0$ for the sublevel error bound and uniform local error bound near $X^*$.
+
+If $\{a_i\}_{i=1}^m$ positively spans $\R^d$, compactness of $\Sph^{d-1}$ gives $c_0 := \min_{u \in \Sph^{d-1}} \max_{i \in [m]} \ip{a_i}{u} > 0$. Picking $j_0 \in \argmax_{j \in [r]} \norm{\beta_j}_2$ yields $\norm{\beta_{j_0}}_2 \ge r^{-1/2}\Fnorm{\beta}$ and some $i \in [m]$ with $\hat y(a_i; \beta) \ge c_0 \norm{\beta_{j_0}}_2$, so $f(\beta) \ge \frac{c_0}{m\sqrt{r}}\Fnorm{\beta} - \frac{1}{m}\max_i |y_i| \to +\infty$; coercivity then implies a global error bound by \cite[Corollary~2]{dolgopolik2023nonlocal}.
+
+Without positive spanning, take $d = 2, r = 2, m = 4$ with covariates all in $\{x_1 > 0\}$:
+\[
+  a_1 = (1, 2),\; y_1 = 2; \quad a_2 = (1, 1),\; y_2 = 1; \quad a_3 = (1, -1),\; y_3 = 1; \quad a_4 = (1, -2),\; y_4 = 2.
+\]
+Clearly $\beta^* = ((0, 1), (0, -1))$ and its swap achieve $f^* = 0$. Conversely, any $\beta = (\beta_1, \beta_2)$ with $\beta_j = (p_j, q_j)$ and $f(\beta) = 0$ defines two affine lines $\ell_j(t) = p_j + q_j t$ satisfying $\max(\ell_1(t_i), \ell_2(t_i)) = |t_i|$ at $t_i \in \{-2, -1, 1, 2\}$. No three of $\{(-2,2), (-1,1), (1,1), (2,2)\}$ are collinear, and any line joining two points on opposite sides of $t = 0$ strictly exceeds $|t_i|$ at an interior point (for $\{(2,2),(-1,1)\}$, $\ell(1) = 5/3 > 1$; for $\{(2,2),(-2,2)\}$, $\ell(1) = 2 > 1$; taking $\ell_1 \equiv 1$ through $\{(-1,1),(1,1)\}$ forces $\ell_2 \equiv 2$ through $\{(-2,2),(2,2)\}$, violating $\ell_2(1) \le 1$). Hence $X^* = \{((0,1),(0,-1)), ((0,-1),(0,1))\}$. Along $\beta(t) := ((0, 1), (-t, 0))$ for $t \ge 2$, $\ip{a_i}{(-t,0)} = -t \le -2 \le \ip{a_i}{(0,1)}$, so $f(\beta(t)) \equiv \frac{3}{2} > 0 = f^*$ is constant while $\dist(\beta(t), X^*) = \sqrt{t^2 + 1} \to +\infty$, refuting any global error bound.
 \end{proof}
 
-Next, we characterize when $f$ fails to be locally weakly convex. Recall that $f$ is $\rho$-weakly convex on a convex set $U$ if $\beta \mapsto f(\beta) + \frac{\rho}{2}\Fnorm{\beta}^2$ is convex on $U$. A naive guess is that any sample with $\hat y(a_i; \beta) < y_i$ and a tie among at least two active blocks prevents weak convexity near $\beta$; however, \emph{opposite-sign ties can cancel}. Indeed, for $d = 1, r = 2, m = 2$ with $a_1 = a_2 = 1$ and $y_1 = 1, y_2 = -1$, at $\beta = (0, 0)$ the first sample has $\hat y_1 = 0 < 1 = y_1$ and a tie, yet $f(\beta_1, \beta_2) = \frac{1}{2}(|1 - M| + |-1 - M|) \equiv 1$ on $(-1, 1)^2$ where $M = \max(\beta_1, \beta_2)$, which is locally constant and hence convex (verified in Lean as \texttt{theorem1b\_counterexample\_constant}). The exact local mechanism is the net directional slope jump:
+Next, recall that $f$ is $\rho$-weakly convex on a convex set $U$ if $\beta \mapsto f(\beta) + \frac{\rho}{2}\Fnorm{\beta}^2$ is convex on $U$. Opposite-sign active ties can cancel across samples (e.g., for $d = 1, r = 2, m = 2$, $a_1 = a_2 = 1$, $y_1 = 1, y_2 = -1$, we have $f \equiv 1$ on $(-1, 1)^2$ despite a tie with $\hat y_1 < y_1$ at $(0, 0)$; verified in Lean as \texttt{theorem1b\_\-counterexample\_\-constant}). The exact local mechanism is the net directional slope jump.
 
-\begin{proposition}[Non-weak-convexity of the class and exact directional V-kink criterion]
+\begin{proposition}[Non-weak-convexity and directional V-kink criterion]
   \label{prop:non-weak-convex}
-  \begin{enumerate}[label=(\alph*),leftmargin=*,nosep]
-    \item The class of $\ell_1$ max-linear objectives~\eqref{eq:emp-loss} is not weakly convex in general: for $d=1, r=2, m=1$ with $a_1 = 1$ and $y_1 = 1$, $f(t, -t) = 1 - |t|$ for $|t| \le 1$, so $f$ is not $\rho$-weakly convex on any neighborhood of $(0, 0)$ for any $\rho \ge 0$.
-    \item For any dataset $(a_i, y_i)_{i=1}^m$, any $\beta \in \R^{r\times d}$, and any direction $E = (E_1, \dots, E_r) \in \R^{r\times d}$, let $J_i(\beta) := \argmax_{j\in[r]}\ip{a_i}{\beta_j}$ and $r_i := \hat y(a_i; \beta) - y_i$. The symmetric one-sided directional slope jump $K(\beta; E) := f'(\beta; E) + f'(\beta; -E) = \lim_{t\downarrow 0} \frac{f(\beta + tE) + f(\beta - tE) - 2f(\beta)}{t}$ equals
+  \begin{enumerate}[label=(\alph*)]
+    \item The class~\eqref{eq:emp-loss} is not weakly convex in general: for $d = 1, r = 2, m = 1$ with $a_1 = 1, y_1 = 1$, $f(t, -t) = 1 - |t|$ for $|t| \le 1$, so $f$ is not $\rho$-weakly convex on any neighborhood of $(0, 0)$ for any $\rho \ge 0$.
+    \item For any $(a_i, y_i)_{i=1}^m$, $\beta \in \R^{r\times d}$, and $E \in \R^{r\times d}$, let $J_i(\beta) := \argmax_{j\in[r]}\ip{a_i}{\beta_j}$ and $r_i := \hat y(a_i; \beta) - y_i$. The symmetric directional slope jump $K(\beta; E) := f'(\beta; E) + f'(\beta; -E) = \lim_{t\downarrow 0} t^{-1}(f(\beta + tE) + f(\beta - tE) - 2f(\beta))$ equals
     \begin{align*}
       K(\beta; E) &= \frac{1}{m}\sum_{i:\, r_i \ne 0} \sign(r_i)\Bigl(\max_{j\in J_i(\beta)}\ip{a_i}{E_j} - \min_{j\in J_i(\beta)}\ip{a_i}{E_j}\Bigr) \\
       &\quad + \frac{1}{m}\sum_{i:\, r_i = 0} \Bigl(\Bigl|\max_{j\in J_i(\beta)}\ip{a_i}{E_j}\Bigr| + \Bigl|\min_{j\in J_i(\beta)}\ip{a_i}{E_j}\Bigr|\Bigr).
     \end{align*}
-    If there exists $E \in \R^{r\times d}$ with $K(\beta; E) < 0$, then $f$ is not $\rho$-weakly convex on any neighborhood of $\beta$ for any $\rho \ge 0$. In particular, this holds whenever some sample $i_0$ has $r_{i_0} < 0$, $a_{i_0} \ne 0$, $|J_{i_0}(\beta)| \ge 2$, and every other sample $i \ne i_0$ satisfies $r_i \ne 0$ and $|J_i(\beta)| = 1$.
+    If $\exists E$ with $K(\beta; E) < 0$, then $f$ is not $\rho$-weakly convex on any neighborhood of $\beta$ for any $\rho \ge 0$. In particular, this holds if some $i_0$ has $r_{i_0} < 0, a_{i_0} \ne 0, |J_{i_0}(\beta)| \ge 2$ while every $i \ne i_0$ has $r_i \ne 0, |J_i(\beta)| = 1$.
   \end{enumerate}
 \end{proposition}
 \begin{proof}
-Part~(a) is immediate since for any $\rho \ge 0$ and $0 < t < \min(1, \frac{1}{\rho+1})$, $(f + \frac{\rho}{2}\Fnorm{\cdot}^2)(t,-t) + (f + \frac{\rho}{2}\Fnorm{\cdot}^2)(-t,t) - 2(f + \frac{\rho}{2}\Fnorm{\cdot}^2)(0,0) = -2t + 2\rho t^2 < 0$. For part~(b), for sufficiently small $t > 0$, $\hat y(a_i; \beta + tE) = \hat y(a_i; \beta) + t\max_{j\in J_i(\beta)}\ip{a_i}{E_j}$ and $\hat y(a_i; \beta - tE) = \hat y(a_i; \beta) - t\min_{j\in J_i(\beta)}\ip{a_i}{E_j}$. Expanding $|r_i + t\max| + |r_i - t\min| - 2|r_i|$ for $r_i \ne 0$ (where $r_i + O(t)$ keeps the sign of $r_i$) and for $r_i = 0$ yields the exact formula for $K(\beta; E)$. If $K(\beta; E) < 0$, then for any $\rho \ge 0$ and sufficiently small $t > 0$,
-\[
-  \bigl(f + \tfrac{\rho}{2}\Fnorm{\cdot}^2\bigr)(\beta + tE)
-  + \bigl(f + \tfrac{\rho}{2}\Fnorm{\cdot}^2\bigr)(\beta - tE)
-  - 2\bigl(f + \tfrac{\rho}{2}\Fnorm{\cdot}^2\bigr)(\beta)
-  = t\,K(\beta; E) + \rho t^2 \Fnorm{E}^2 < 0,
-\]
-contradicting midpoint convexity on every ball around $\beta$. Under the sufficient condition, picking distinct $j_1, j_2 \in J_{i_0}(\beta)$ and setting $E_{j_1} = a_{i_0}$, $E_{j_2} = -a_{i_0}$, $E_k = 0$ ($k \notin \{j_1, j_2\}$) gives $K(\beta; E) \le -\frac{2\norm{a_{i_0}}_2^2}{m} < 0$.
+Part~(a) follows by evaluating $f + \frac{\rho}{2}\Fnorm{\cdot}^2$ at $(t,-t), (-t,t), (0,0)$ for $0 < t < \min(1, \frac{1}{\rho+1})$. For~(b), for small $t > 0$, $\hat y(a_i; \beta + tE) = \hat y(a_i; \beta) + t\max_{j\in J_i(\beta)}\ip{a_i}{E_j}$ and $\hat y(a_i; \beta - tE) = \hat y(a_i; \beta) - t\min_{j\in J_i(\beta)}\ip{a_i}{E_j}$; expanding $|r_i + t\max| + |r_i - t\min| - 2|r_i|$ for $r_i \ne 0$ and $r_i = 0$ gives $K(\beta; E)$. If $K(\beta; E) < 0$, then $(f + \frac{\rho}{2}\Fnorm{\cdot}^2)(\beta + tE) + (f + \frac{\rho}{2}\Fnorm{\cdot}^2)(\beta - tE) - 2(f + \frac{\rho}{2}\Fnorm{\cdot}^2)(\beta) = t K(\beta; E) + \rho t^2\Fnorm{E}^2 < 0$ for small $t > 0$. Under the sufficient condition, setting $E_{j_1} = a_{i_0}, E_{j_2} = -a_{i_0}$ for distinct $j_1, j_2 \in J_{i_0}(\beta)$ and $E_k = 0$ otherwise gives $K(\beta; E) = -2\norm{a_{i_0}}_2^2/m < 0$.
 \end{proof}
 
-Finally, one might attempt to prove finite-sample sharp growth on the \emph{active-set stability ball} where no sample changes its maximizing index $j^*(i) := \argmax_{j\in[r]}\ip{a_i}{\beta_j^*}$. The following proposition shows that while this works trivially in $d = 1$, it collapses in every dimension $d \ge 2$.
-
-\begin{proposition}[Active-set stability radius and its collapse for $d \ge 2$ under Gaussian design]
+\begin{proposition}[Active-set stability radius and its collapse for $d \ge 2$]
   \label{prop:stab-decay}
-  Suppose $y_i = \hat y(a_i; \beta^*)$ (noiseless) and every sample has a unique active index $j^*(i)$ with positive margin $g_i := \ip{a_i}{\beta_{j^*(i)}^*} - \max_{k \ne j^*(i)} \ip{a_i}{\beta_k^*} > 0$ and $a_i \ne 0$. Define the stability radius $\rho_{\mathrm{stab}} := \min_{i \in [m]} \frac{g_i}{\sqrt{2}\norm{a_i}_2}$ and let $A_j$ denote the submatrix of rows $a_i^\top$ with $j^*(i) = j$. Then for all $\beta \in B(\beta^*, \rho_{\mathrm{stab}})$,
+  Suppose $y_i = \hat y(a_i; \beta^*)$ (noiseless) and every sample has a unique active index $j^*(i)$ with margin $g_i := \ip{a_i}{\beta_{j^*(i)}^*} - \max_{k \ne j^*(i)} \ip{a_i}{\beta_k^*} > 0$ and $a_i \ne 0$. Set $\rho_{\mathrm{stab}} := \min_{i \in [m]} \frac{g_i}{\sqrt{2}\norm{a_i}_2}$ and let $A_j$ have rows $a_i^\top$ with $j^*(i) = j$. Then on $B(\beta^*, \rho_{\mathrm{stab}})$,
   \[
     f(\beta) \ge \mu_{\mathrm{loc}}\,\Lonenorm{\beta - \beta^*} \ge \mu_{\mathrm{loc}}\,\Fnorm{\beta - \beta^*},
     \qquad \mu_{\mathrm{loc}} := \frac{1}{m}\min_{j \in [r]}\min_{u \in \Sph^{d-1}} \norm{A_j u}_1,
   \]
-  and if $\mu_{\mathrm{loc}} > 0$, then $\dist(\beta, X^*) = \Fnorm{\beta - \beta^*}$ for all $\beta \in B(\beta^*, \frac{1}{2}\rho_{\mathrm{stab}})$. Moreover, under $a_i \stackrel{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0, I_d)$ with $r = 2$ and $v := \beta_1^* - \beta_2^* \ne 0$:
-  \begin{enumerate}[label=(\alph*),leftmargin=*,nosep]
-    \item If $d = 1$, then $\rho_{\mathrm{stab}} = \frac{\norm{v}_2}{\sqrt{2}}$ almost surely for every $m \ge 1$ (no collapse as $m \to \infty$).
-    \item If $d \ge 2$, then for \emph{every} $d \ge 2$ and \emph{every} $m \ge 1$, the rescaled radius satisfies the uniform non-asymptotic two-sided tail bounds
+  and if $\mu_{\mathrm{loc}} > 0$, then $\dist(\beta, X^*) = \Fnorm{\beta - \beta^*}$ on $B(\beta^*, \frac{1}{2}\rho_{\mathrm{stab}})$. Moreover, under $a_i \stackrel{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0, I_d)$ with $r = 2$ and $v := \beta_1^* - \beta_2^* \ne 0$:
+  \begin{enumerate}[label=(\alph*)]
+    \item If $d = 1$, then $\rho_{\mathrm{stab}} = \frac{\norm{v}_2}{\sqrt{2}}$ almost surely for every $m \ge 1$.
+    \item If $d \ge 2$, then for every $d \ge 2$ and $m \ge 1$,
     \begin{align*}
       \Prob\!\left(\rho_{\mathrm{stab}} \le \frac{\varepsilon\,\norm{v}_2}{\sqrt{2}\,m\sqrt{d}}\right)
-      &\le \sqrt{\frac{2}{\pi}}\,\varepsilon && \forall \varepsilon > 0, \\
+      &\le \sqrt{\frac{2}{\pi}}\,\varepsilon \quad (\forall \varepsilon > 0), \\
       \Prob\!\left(\rho_{\mathrm{stab}} > \frac{s\,\norm{v}_2}{\sqrt{2}\,m\sqrt{d}}\right)
-      &\le \max\!\left\{\exp\!\left(-\frac{\sqrt{s}}{e\sqrt{2\pi}}\right),\; \frac{1}{s}\right\} && \forall s \ge 1,
+      &\le \max\!\left\{\exp\!\left(-\frac{\sqrt{s}}{e\sqrt{2\pi}}\right),\; \frac{1}{s}\right\} \quad (\forall s \ge 1),
     \end{align*}
-    with the sharper upper tail $\exp\bigl(-\frac{s}{e\sqrt{2\pi}}\bigr)$ whenever $1 \le s \le m$. In particular, uniformly over all $(m, d) \in \mathbb{N} \times \{2, 3, \dots\}$, $\rho_{\mathrm{stab}} = \Theta_{\Prob}\!\bigl(\frac{\norm{v}_2}{m\sqrt{d}}\bigr)$, and $\rho_{\mathrm{stab}} \xrightarrow{\Prob} 0$ along every sequence with $d \ge 2$ and $m\sqrt{d} \to \infty$ (whether $d \ge 2$ is fixed with $m \to \infty$, $m \ge 1$ is fixed with $d \to \infty$, or both diverge jointly).
+    with sharper upper tail $\exp\bigl(-\frac{s}{e\sqrt{2\pi}}\bigr)$ when $1 \le s \le m$. Hence $\rho_{\mathrm{stab}} = \Theta_{\Prob}\bigl(\frac{\norm{v}_2}{m\sqrt{d}}\bigr)$ uniformly over $(m, d) \in \N \times \{2, 3, \dots\}$ and $\rho_{\mathrm{stab}} \xrightarrow{\Prob} 0$ whenever $m\sqrt{d} \to \infty$.
   \end{enumerate}
 \end{proposition}
 \begin{proof}
-For $\Delta = \beta - \beta^*$ with $\Fnorm{\Delta} \le \rho_{\mathrm{stab}}$, any $i \in [m]$ and $k \ne j^*(i)$ satisfy $|\ip{a_i}{\Delta_{j^*(i)} - \Delta_k}| \le \norm{a_i}_2 \sqrt{2}\Fnorm{\Delta} \le g_i$, so the active index $j^*(i)$ does not change on $B(\beta^*, \rho_{\mathrm{stab}})$. Thus $f(\beta^* + \Delta) = \frac{1}{m}\sum_{j=1}^r \norm{A_j \Delta_j}_1 \ge \mu_{\mathrm{loc}}\Lonenorm{\Delta}$. On the half-radius ball $B(\beta^*, \frac{1}{2}\rho_{\mathrm{stab}})$, if $\mu_{\mathrm{loc}} > 0$ then $f(\beta) > 0$ on $B(\beta^*, \rho_{\mathrm{stab}}) \setminus \{\beta^*\}$, so no other global minimizer can lie closer to $\beta$ than $\beta^*$.
+For $\Fnorm{\Delta} \le \rho_{\mathrm{stab}}$, $|\ip{a_i}{\Delta_{j^*(i)} - \Delta_k}| \le \norm{a_i}_2\sqrt{2}\Fnorm{\Delta} \le g_i$, so $\hat y(a_i; \beta^* + \Delta) = \ip{a_i}{\beta_{j^*(i)}^* + \Delta_{j^*(i)}}$ and $f(\beta^* + \Delta) = \frac{1}{m}\sum_j \norm{A_j\Delta_j}_1 \ge \mu_{\mathrm{loc}}\Lonenorm{\Delta}$. If $\mu_{\mathrm{loc}} > 0$, then $X^* \cap B(\beta^*, \rho_{\mathrm{stab}}) = \{\beta^*\}$, giving $\dist(\beta, X^*) = \Fnorm{\beta - \beta^*}$ on $B(\beta^*, \frac{1}{2}\rho_{\mathrm{stab}})$.
 
-Now let $a_i \stackrel{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0, I_d)$ with $r = 2$, $v \ne 0$, and $\hat v := v/\norm{v}_2$. Almost surely $a_i \ne 0$ and $g_i = |\ip{a_i}{v}| > 0$ for all $i \in [m]$, so $\rho_{\mathrm{stab}} = \frac{\norm{v}_2}{\sqrt{2}} M_{m,d}$ where $M_{m,d} := \min_{i \in [m]} U_i$ and $U_i := |\ip{a_i}{\hat v}|/\norm{a_i}_2 \in [0, 1]$ are i.i.d.
-
-For~(a) ($d = 1$), $\hat v \in \{-1, 1\}$ and $|\ip{a_i}{\hat v}| = |a_i| = \norm{a_i}_2$, hence $U_i = 1$ almost surely for all $i \in [m]$ and $\rho_{\mathrm{stab}} = \norm{v}_2/\sqrt{2}$ a.s.
-
-For~(b) ($d \ge 2$), rotational invariance of $\mathcal{N}(0, I_d)$ gives $U_i^2 \stackrel{d}{=} Z_1^2 / (Z_1^2 + W)$ with independent $Z_1^2 \sim \operatorname{Gamma}(\frac{1}{2}, \frac{1}{2})$ and $W = \sum_{k=2}^d Z_k^2 \sim \operatorname{Gamma}(\frac{d-1}{2}, \frac{1}{2})$, so $U_i^2 \sim \operatorname{Beta}(\frac{1}{2}, \frac{d-1}{2})$. Changing variables $s = u^2$ yields the exact density of $U_i$ on $(0, 1)$,
-\[
-  p_d(u) = c_d\,(1 - u^2)^{\frac{d-3}{2}},
-  \qquad c_d := \frac{2}{B\bigl(\tfrac{1}{2}, \tfrac{d-1}{2}\bigr)} = \frac{2\,\Gamma(d/2)}{\sqrt{\pi}\,\Gamma((d-1)/2)}.
-\]
-By Cauchy--Schwarz on $\Gamma(x + \frac{1}{2}) = \int_0^\infty t^{(x-1)/2}e^{-t/2}\cdot t^{x/2}e^{-t/2}\,dt$, we have $\Gamma(x+\frac{1}{2})^2 \le \Gamma(x)\Gamma(x+1) = x\Gamma(x)^2$ for every $x > 0$. Applying this at $x = \frac{d-1}{2}$ gives $\Gamma(\frac{d}{2})/\Gamma(\frac{d-1}{2}) \le \sqrt{\frac{d-1}{2}}$, while applying it at $x = \frac{d}{2}$ with $\Gamma(\frac{d+1}{2}) = \frac{d-1}{2}\Gamma(\frac{d-1}{2})$ gives $\Gamma(\frac{d}{2})/\Gamma(\frac{d-1}{2}) \ge \frac{d-1}{\sqrt{2d}}$. Since $\frac{d-1}{\sqrt{d}} \ge \frac{1}{2}\sqrt{d}$ for all $d \ge 2$, we obtain
-\[
-  \frac{1}{\sqrt{2\pi}}\sqrt{d} \le c_d \le \sqrt{\frac{2(d-1)}{\pi}} < \sqrt{\frac{2}{\pi}}\sqrt{d}
-  \qquad \forall d \ge 2.
-\]
-Let $F_d(t) := \Prob(U_i \le t) = \int_0^t p_d(u)\,du$ for $t \in [0, 1]$. For $d \ge 3$, $(1 - u^2)^{\frac{d-3}{2}} \le 1$ implies $F_d(t) \le c_d t < \sqrt{\frac{2}{\pi}}\sqrt{d}\,t$; for $d = 2$, concavity of $\sin$ on $[0, \pi/2]$ gives $\sin(\frac{\pi}{2}t) \ge t$, hence $F_2(t) = \frac{2}{\pi}\arcsin(t) \le t < \frac{2}{\sqrt{\pi}} t = \sqrt{\frac{2}{\pi}}\sqrt{2}\,t$. Thus $F_d(t) \le \sqrt{\frac{2}{\pi}}\sqrt{d}\,t$ for all $d \ge 2$ and $t \in [0, 1]$. For any $\varepsilon > 0$, if $t := \frac{\varepsilon}{m\sqrt{d}} \le 1$, the union bound gives $\Prob(M_{m,d} \le t) \le m F_d(t) \le \sqrt{\frac{2}{\pi}}\,\varepsilon$; if $t > 1$, then $\varepsilon > m\sqrt{d} \ge \sqrt{2}$ so $\sqrt{\frac{2}{\pi}}\,\varepsilon > 1$, making the lower-tail bound trivial.
-
-For the upper tail, first let $t \in [0, 1/\sqrt{d}]$. When $d = 2$, $(1 - u^2)^{-1/2} \ge 1$ gives $F_2(t) \ge c_2 t > \frac{1}{e\sqrt{2\pi}}\sqrt{2}\,t$. When $d \ge 3$ and $u \in [0, 1/\sqrt{d}]$, we have $u^2 \le \frac{1}{d} \le \frac{1}{3} < \frac{1}{2}$. Since $x \mapsto 1 - x - e^{-2x}$ is concave on $[0, \frac{1}{2}]$ and nonnegative at the endpoints $0$ and $\frac{1}{2}$, it follows that $1 - x \ge e^{-2x}$ on $[0, \frac{1}{2}]$, whence $(1 - u^2)^{\frac{d-3}{2}} \ge e^{-(d-3)u^2} \ge e^{-(d-3)/d} > e^{-1}$ and therefore $F_d(t) \ge e^{-1}c_d t \ge c_0 \sqrt{d}\,t$ with $c_0 := \frac{1}{e\sqrt{2\pi}}$. Now fix any $s \ge 1$ and consider three exhaustive cases:
-\begin{itemize}[leftmargin=*,nosep]
-  \item If $s \le m$, then $t := \frac{s}{m\sqrt{d}} \le \frac{1}{\sqrt{d}}$ and $\Prob(M_{m,d} > t) = (1 - F_d(t))^m \le e^{-m F_d(t)} \le e^{-c_0 s} \le e^{-c_0 \sqrt{s}}$.
-  \item If $\sqrt{s} \le m < s$, then $\frac{s}{m\sqrt{d}} > \frac{1}{\sqrt{d}}$, so $\Prob(M_{m,d} > \frac{s}{m\sqrt{d}}) \le \Prob(M_{m,d} > \frac{1}{\sqrt{d}}) \le e^{-c_0 m} \le e^{-c_0 \sqrt{s}}$.
-  \item If $1 \le m < \sqrt{s}$, then by coordinate symmetry $\sum_{k=1}^d \E[a_{1,k}^2/\norm{a_1}_2^2] = 1$ gives $\E[U_1^2] = 1/d$; by independence and Markov's inequality,
-  \[
-    \Prob\!\left(M_{m,d} > \frac{s}{m\sqrt{d}}\right)
-    = \Prob\!\left(U_1^2 > \frac{s^2}{m^2 d}\right)^m
-    \le \left(\frac{m^2}{s^2}\right)^m
-    < \left(\frac{s}{s^2}\right)^m
-    = s^{-m} \le \frac{1}{s}.
-  \]
-\end{itemize}
-Combining all three cases yields the stated upper tail for every $d \ge 2$, $m \ge 1$, and $s \ge 1$.
+Under $a_i \stackrel{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0, I_d)$ with $r = 2$ and $\hat v = v/\norm{v}_2$, $\rho_{\mathrm{stab}} = \frac{\norm{v}_2}{\sqrt{2}} M_{m,d}$ a.s., where $M_{m,d} := \min_{i \in [m]} U_i$ and $U_i := |\ip{a_i}{\hat v}|/\norm{a_i}_2$. Part~(a) is immediate since $U_i = 1$ a.s.\ for $d = 1$. For~(b) ($d \ge 2$), $U_i^2 \sim \operatorname{Beta}(\frac{1}{2}, \frac{d-1}{2})$, so $U_i$ has density $p_d(u) = c_d(1 - u^2)^{\frac{d-3}{2}}$ on $(0, 1)$ with $c_d := \frac{2\Gamma(d/2)}{\sqrt{\pi}\Gamma((d-1)/2)}$. Cauchy--Schwarz gives $\Gamma(x + \frac{1}{2})^2 \le x\Gamma(x)^2$ ($x > 0$); applying this at $x = \frac{d-1}{2}$ and $x = \frac{d}{2}$ yields $\frac{1}{\sqrt{2\pi}}\sqrt{d} \le c_d < \sqrt{\frac{2}{\pi}}\sqrt{d}$ for all $d \ge 2$. Let $F_d(t) := \Prob(U_i \le t)$. For $d \ge 3$, $F_d(t) \le c_d t < \sqrt{\frac{2}{\pi}}\sqrt{d}\,t$; for $d = 2$, $\sin(\frac{\pi}{2}t) \ge t$ gives $F_2(t) = \frac{2}{\pi}\arcsin(t) \le t < \sqrt{\frac{2}{\pi}}\sqrt{2}\,t$. A union bound gives the lower tail (trivial if $\frac{\varepsilon}{m\sqrt{d}} > 1$). For the upper tail, on $t \in [0, 1/\sqrt{d}]$ with $c_0 := \frac{1}{e\sqrt{2\pi}}$, $F_2(t) \ge c_2 t > c_0\sqrt{2}\,t$, while for $d \ge 3$ and $u \le 1/\sqrt{d}$, $1 - u^2 \ge e^{-2u^2}$ gives $(1 - u^2)^{\frac{d-3}{2}} > e^{-1}$ and $F_d(t) \ge c_0\sqrt{d}\,t$. For $s \ge 1$: if $s \le m$, $\Prob(M_{m,d} > \frac{s}{m\sqrt{d}}) \le e^{-c_0 s} \le e^{-c_0\sqrt{s}}$; if $\sqrt{s} \le m < s$, $\Prob(M_{m,d} > \frac{s}{m\sqrt{d}}) \le \Prob(M_{m,d} > \frac{1}{\sqrt{d}}) \le e^{-c_0 m} \le e^{-c_0\sqrt{s}}$; if $1 \le m < \sqrt{s}$, $\E[U_1^2] = 1/d$ and Markov's inequality give $\Prob(U_1^2 > \frac{s^2}{m^2 d})^m \le (m^2/s^2)^m < s^{-m} \le 1/s$.
 \end{proof}
-
-To obtain a macroscopic radius $\rho$ independent of $(m, d)$, we must therefore explicitly control \emph{active-set sign flips}—the central theme of Sections~\ref{sec:pop-r2}--\ref{sec:finite-sample}.
 
 % ============================================================================
 \section{Global Population Sharpness for Two Components}
 \label{sec:pop-r2}
 % ============================================================================
 
-For $r = 2$, the Gaussian population loss
-$F(\beta) = \E_{a \sim \mathcal{N}(0, I_d)}\bigl[|\max(\ip{a}{\beta_1}, \ip{a}{\beta_2}) - \max(\ip{a}{\beta_1^*}, \ip{a}{\beta_2^*})|\bigr]$
-exhibits a global cancellation when paired across antipodal points $a$ and $-a$.
+For $r = 2$, pairing antipodal points $a$ and $-a$ yields an exact one-sided remainder bound and a global, scale-free lower bound on all of $\R^{2 \times d}$.
 
 \begin{theorem}[Exact $r = 2$ population remainder and global scale-free sharpness]
   \label{thm:pop-r2}
   Let $d \ge 1$, $\beta^* = (\beta_1^*, \beta_2^*) \in \R^{2 \times d}$, and $\Delta = (\Delta_1, \Delta_2) \in \R^{2 \times d}$. Set $v := \beta_1^* - \beta_2^*$ and $\delta := \Delta_1 - \Delta_2$. Then:
-  \begin{enumerate}[label=(\alph*),leftmargin=*,nosep]
+  \begin{enumerate}[label=(\alph*)]
     \item \emph{(Exact one-sided remainder bound.)}
     \begin{equation}
       \label{eq:thm2-rem}
@@ -327,7 +283,7 @@ exhibits a global cancellation when paired across antipodal points $a$ and $-a$.
       \frac{\norm{v}_2 + \norm{v + \delta}_2 - \norm{2v + \delta}_2}{\sqrt{2\pi}}
       \le \frac{\norm{\Delta_1 - \Delta_2}_2^2}{2\sqrt{2\pi}\,\norm{v}_2}.
     \end{equation}
-    \item \emph{(Global scale-free sharp growth.)} For \emph{every} $\beta = (\beta_1, \beta_2) \in \R^{2 \times d}$ (including degenerate ground truth $\beta_1^* = \beta_2^*$),
+    \item \emph{(Global scale-free sharp growth.)} For every $\beta = (\beta_1, \beta_2) \in \R^{2 \times d}$ (including degenerate ground truth $\beta_1^* = \beta_2^*$),
     \begin{equation}
       \label{eq:thm2-global}
       F(\beta) \ge \frac{\sqrt{2} - 1}{\sqrt{\pi}}\,\dist(\beta, X_{\mathrm{pop}}^*)
@@ -337,121 +293,73 @@ exhibits a global cancellation when paired across antipodal points $a$ and $-a$.
   \end{enumerate}
 \end{theorem}
 
-\begin{remark}[Sharpness of the constants and degenerate limit]
-  The constant $\frac{\sqrt{2}-1}{\sqrt{\pi}}$ in~\eqref{eq:thm2-global} is completely independent of the dimension $d$ and of the separation $\norm{\beta_1^* - \beta_2^*}_2$: it persists without degradation even when $\beta_1^* = \beta_2^*$, where~\eqref{eq:thm2-rem} collapses to the exact identity $F(\beta^* + \Delta) = \frac{\norm{\Delta_1}_2 + \norm{\Delta_2}_2}{\sqrt{2\pi}} \ge \frac{1}{\sqrt{2\pi}}\Fnorm{\Delta}$. For $v \ne 0$, along the small perpendicular perturbation $\Delta_1 = -\Delta_2 \perp v$ ($\delta = 2\Delta_1 \to 0$), the middle bound in~\eqref{eq:thm2-rem} matches the true asymptotic remainder $\frac{\norm{\delta}_2^2}{4\sqrt{2\pi}\norm{v}_2} + o(\norm{\delta}_2^2)$ to leading order (half of the global quadratic bound~\eqref{eq:thm2-quad}).
+\begin{remark}[Relation to real amplitude phase retrieval and constant slack]
+  \label[remark]{rem:phase-retrieval-split}
+  Writing $\bar\beta := \frac{\beta_1+\beta_2}{2}$, $w := \frac{\beta_1-\beta_2}{2}$, and $\bar\Delta := \bar\beta - \bar\beta^*$, the identity $\max(x, y) = \frac{x+y+|x-y|}{2}$ and antipodal symmetry $a \stackrel{d}{=} -a$ give
+  \[
+    F(\beta)
+    = \E\Bigl[\bigl|\ip{a}{\bar\Delta} + \bigl(|\ip{a}{w}| - |\ip{a}{w^*}|\bigr)\bigr|\Bigr]
+    = \E\Bigl[\max\bigl(|\ip{a}{\bar\Delta}|,\; \bigl||\ip{a}{w}| - |\ip{a}{w^*}|\bigr|\bigr)\Bigr],
+  \]
+  while $\dist(\beta, X_{\mathrm{pop}}^*)^2 = 2\norm{\bar\Delta}_2^2 + 2\min(\norm{w - w^*}_2, \norm{w + w^*}_2)^2$. Thus \emph{qualitative} global sharpness for $r = 2$ also follows by decoupling into the linear term $|\ip{a}{\bar\Delta}|$ and the real amplitude phase-retrieval term $||\ip{a}{w}| - |\ip{a}{w^*}||$ \cite{eldar2014phase,bandeira2014saving}. The distinct value of \cref{thm:pop-r2} is the coupled one-sided remainder bound~\eqref{eq:thm2-rem} directly in block coordinates $(\Delta_1, \Delta_2)$---which is exact at $\beta_1^* = \beta_2^*$ (giving $F(\beta^*+\Delta) = \frac{\norm{\Delta_1}_2+\norm{\Delta_2}_2}{\sqrt{2\pi}}$) and matches the small-perturbation perpendicular remainder $\frac{\norm{\delta}_2^2}{4\sqrt{2\pi}\norm{v}_2} + o(\norm{\delta}_2^2)$ to leading order---together with the self-contained global bound~\eqref{eq:thm2-global}. We do \emph{not} claim that $\frac{\sqrt{2}-1}{\sqrt{\pi}}$ in~\eqref{eq:thm2-global} is the sharp global constant in Frobenius norm: the proof establishes the stronger intermediate $\ell_{1,2}$ bound $F(\beta^*+\Delta) \ge \frac{2-\sqrt{2}}{\sqrt{2\pi}}(\norm{\Delta_1}_2 + \norm{\Delta_2}_2)$ in the Voronoi cell, and relaxing $\norm{\Delta_1}_2 + \norm{\Delta_2}_2 \ge \Fnorm{\Delta}$ loses up to a factor of $\sqrt{2}$ on balanced perturbations (for example, at $\beta^* = (e_1, -e_1)$ and $\beta = (e_2, -e_2)$ for $d \ge 2$, direct polar integration gives $F(\beta) = \frac{4 - 2\sqrt{2}}{\sqrt{\pi}}$ and $F(\beta)/\dist(\beta, X_{\mathrm{pop}}^*) = \frac{2 - \sqrt{2}}{\sqrt{\pi}} \approx 0.330495$). In $d = 1$, $v$ and $v + \delta$ are collinear with $\ip{v}{v+\delta} \ge 0$ in the Voronoi cell, so~\eqref{eq:thm2-rem} gives $F(\beta) = \frac{|\Delta_1|+|\Delta_2|}{\sqrt{2\pi}} \ge \frac{1}{\sqrt{2\pi}}\dist(\beta, X_{\mathrm{pop}}^*)$.
 \end{remark}
 
-\begin{proof}[Proof of Theorem~\ref{thm:pop-r2}]
-\textbf{Case 0 ($\beta_1^* = \beta_2^*$).} Here $v = 0$, so $F(\beta^* + \Delta) = \E[|\max(\ip{a}{\Delta_1}, \ip{a}{\Delta_2})|]$. For every $a \in \R^d$, setting $x = \ip{a}{\Delta_1}$ and $y = \ip{a}{\Delta_2}$, we have $|\max(x, y)| + |\max(-x, -y)| = |\max(x, y)| + |\min(x, y)| = |x| + |y|$. By symmetry of $\mathcal{N}(0, I_d)$ under $a \mapsto -a$,
-\[
-  F(\beta^* + \Delta)
-  = \frac{1}{2}\E\bigl[|\ip{a}{\Delta_1}| + |\ip{a}{\Delta_2}|\bigr]
-  = \frac{\norm{\Delta_1}_2 + \norm{\Delta_2}_2}{\sqrt{2\pi}},
-\]
-which gives equality in~\eqref{eq:thm2-rem} (since $\norm{0}_2 + \norm{\delta}_2 - \norm{\delta}_2 = 0$) and implies $F(\beta^* + \Delta) \ge \frac{1}{\sqrt{2\pi}}\Fnorm{\Delta} > \frac{\sqrt{2}-1}{\sqrt{\pi}}\Fnorm{\Delta}$ since $\frac{1}{\sqrt{2\pi}} \approx 0.3989 > 0.2337$.
+\begin{proof}[Proof of \cref{thm:pop-r2}]
+\textbf{Case 0 ($\beta_1^* = \beta_2^*$).} Here $v = 0$, and $|\max(x, y)| + |\max(-x, -y)| = |x| + |y|$ with $a \stackrel{d}{=} -a$ yields $F(\beta^* + \Delta) = \frac{\norm{\Delta_1}_2 + \norm{\Delta_2}_2}{\sqrt{2\pi}}$, giving equality in~\eqref{eq:thm2-rem} and $F(\beta^* + \Delta) \ge \frac{1}{\sqrt{2\pi}}\Fnorm{\Delta} > \frac{\sqrt{2}-1}{\sqrt{\pi}}\Fnorm{\Delta}$.
 
-\medskip
-\noindent\textbf{Case 1 ($v \ne 0$). Step 1: Antipodal pairing.}
-Define the linearized loss $L(a) := \ind_{\{\ip{a}{v} \ge 0\}}|\ip{a}{\Delta_1}| + \ind_{\{\ip{a}{v} < 0\}}|\ip{a}{\Delta_2}|$ and the pointwise remainder
-\[
-  R(a) := \bigl|\max(\ip{a}{\beta_1^*+\Delta_1}, \ip{a}{\beta_2^*+\Delta_2}) - \max(\ip{a}{\beta_1^*}, \ip{a}{\beta_2^*})\bigr| - L(a).
-\]
-Since $\Prob(\ip{a}{v} = 0) = 0$ and $a \stackrel{d}{=} -a$, $\E[L(a)] = \frac{1}{2}\E[|\ip{a}{\Delta_1}| + |\ip{a}{\Delta_2}|] = \frac{\norm{\Delta_1}_2 + \norm{\Delta_2}_2}{\sqrt{2\pi}}$, and
+\textbf{Case 1 ($v \ne 0$). Step 1: Antipodal pairing.}
+Define $L(a) := \ind_{\{\ip{a}{v} \ge 0\}}|\ip{a}{\Delta_1}| + \ind_{\{\ip{a}{v} < 0\}}|\ip{a}{\Delta_2}|$ and $R(a) := |\hat y(a; \beta^* + \Delta) - \hat y(a; \beta^*)| - L(a)$. By symmetry $a \stackrel{d}{=} -a$ and $\Prob(\ip{a}{v} = 0) = 0$,
 \begin{equation}
   \label{eq:r2-pair-exp}
   F(\beta^* + \Delta) - \frac{\norm{\Delta_1}_2 + \norm{\Delta_2}_2}{\sqrt{2\pi}}
   = \E[R(a)] = \frac{1}{2}\E\bigl[R(a) + R(-a)\bigr].
 \end{equation}
-Fix $a \in \R^d$ with $\ip{a}{v} \ne 0$. Without loss of generality (swapping $a$ and $-a$ if needed), assume $\ip{a}{v} > 0$, and set $u := \ip{a}{v} > 0$, $D_1 := \ip{a}{\Delta_1}$, $D_2 := \ip{a}{\Delta_2}$, and $W := \ip{a}{v + \delta} = u + D_1 - D_2$.
-\begin{itemize}[leftmargin=*,nosep]
-  \item If $W \ge 0$, then no flip occurs at either $a$ or $-a$: at $a$, $\max(\ip{a}{\beta_1^*+\Delta_1}, \ip{a}{\beta_2^*+\Delta_2}) - \max(\ip{a}{\beta_1^*}, \ip{a}{\beta_2^*}) = D_1$, so $R(a) = 0$; at $-a$, $\ip{-a}{v} < 0$ and $\ip{-a}{v+\delta} \le 0$, so $R(-a) = 0$.
-  \item If $W < 0$, set $X := -W > 0$, so $D_2 = D_1 + u + X$. At $a$, $\hat y(a;\beta) - \hat y(a;\beta^*) = \ip{a}{\beta_2^* + \Delta_2 - \beta_1^*} = D_2 - u = D_1 + X$, hence $R(a) = |D_1 + X| - |D_1|$. At $-a$, $\ip{-a}{v} < 0$ while $\ip{-a}{v + \delta} = X > 0$, so $\hat y(-a; \beta) - \hat y(-a; \beta^*) = \ip{-a}{\beta_1^* + \Delta_1 - \beta_2^*} = -(D_1 + u)$, hence $R(-a) = |D_1 + u| - |D_2| = |D_1 + u| - |D_1 + u + X|$.
-\end{itemize}
-Introducing the clamped ramp $\psi_u(s) := |s + u| - |s| = \operatorname{clip}(2s + u, -u, u)$, which is nondecreasing and $2$-Lipschitz in $s$ with range $[-u, u]$, we obtain for $\ip{a}{v} > 0 > \ip{a}{v+\delta}$:
-\[
-  R(a) + R(-a) = \bigl(|D_1 + u| - |D_1|\bigr) - \bigl(|D_1 + X + u| - |D_1 + X|\bigr)
-  = \psi_u(D_1) - \psi_u(D_1 + X).
-\]
-Since $X > 0$ and $\psi_u$ is nondecreasing, $\psi_u(D_1) - \psi_u(D_1 + X) \le 0$. Moreover, $2$-Lipschitzness gives $\psi_u(D_1 + X) - \psi_u(D_1) \le 2X$, while the range bound $\psi_u \in [-u, u]$ gives $\psi_u(D_1 + X) - \psi_u(D_1) \le 2u$. Thus, for almost every $a \in \R^d$,
+Fix $a$ with $\ip{a}{v} \ne 0$; swapping $a$ and $-a$ if needed, assume $u := \ip{a}{v} > 0$, and set $D_1 := \ip{a}{\Delta_1}$, $D_2 := \ip{a}{\Delta_2}$, and $W := \ip{a}{v + \delta} = u + D_1 - D_2$. If $W \ge 0$, $R(a) = R(-a) = 0$. If $W < 0$, set $X := -W > 0$; then $D_2 = D_1 + u + X$, $R(a) = |D_1 + X| - |D_1|$, and $R(-a) = |D_1 + u| - |D_1 + u + X|$. Writing $\psi_u(s) := |s + u| - |s| = \operatorname{clip}(2s + u, -u, u)$ (nondecreasing, $2$-Lipschitz, range $[-u, u]$) gives $R(a) + R(-a) = \psi_u(D_1) - \psi_u(D_1 + X) \in [-2\min(u, X), 0]$, hence a.e.
 \begin{equation}
   \label{eq:r2-sandwich}
   -2\ind_{\{\ip{a}{v}\ip{a}{v+\delta} < 0\}} \min\bigl(|\ip{a}{v}|,\, |\ip{a}{v+\delta}|\bigr)
   \le R(a) + R(-a) \le 0.
 \end{equation}
 
-\medskip
-\noindent\textbf{Step 2: Exact Gaussian wedge integral.}
-We claim that for \emph{any} $v, w \in \R^d$,
+\textbf{Step 2: Exact Gaussian wedge integral.}
+We claim that for all $v, w \in \R^d$,
 \begin{equation}
   \label{eq:wedge-gaussian}
   I(v, w) := \E_{a \sim \mathcal{N}(0, I_d)}\Bigl[\ind_{\{\ip{a}{v}\ip{a}{w} < 0\}} \min\bigl(|\ip{a}{v}|,\, |\ip{a}{w}|\bigr)\Bigr]
   = \frac{\norm{v}_2 + \norm{w}_2 - \norm{v + w}_2}{\sqrt{2\pi}}.
 \end{equation}
-If $v = 0$ or $w = 0$, both sides are $0$. If $w = \lambda v$ is collinear with $v \ne 0$: for $\lambda \ge 0$ both sides vanish; for $\lambda < 0$, $\ip{a}{v}\ip{a}{w} < 0$ a.s., so $I(v, w) = \min(1, -\lambda)\norm{v}_2\sqrt{2/\pi} = \frac{1 + (-\lambda) - |1+\lambda|}{\sqrt{2\pi}}\norm{v}_2 = \frac{\norm{v}_2 + \norm{w}_2 - \norm{v+w}_2}{\sqrt{2\pi}}$. If $v, w$ are linearly independent, let $c_1 = \norm{v}_2$, $c_2 = \norm{w}_2$, and $\theta \in (0, \pi)$ be the angle between $v$ and $w$ ($\cos\theta = \frac{\ip{v}{w}}{c_1 c_2}$). Choosing an orthonormal basis $(b_1, b_2)$ of $\operatorname{span}(v, w)$ so that $v = c_1 b_2$ and $w = -c_2 \sin\theta\, b_1 + c_2 \cos\theta\, b_2$, the projection $(\ip{a}{b_1}, \ip{a}{b_2}) \sim \mathcal{N}(0, I_2)$ in polar coordinates $(r\cos\varphi, r\sin\varphi)$ ($\varphi \in (-\pi, \pi)$) satisfies $\ip{a}{v} = r c_1 \sin\varphi$ and $\ip{a}{w} = r c_2 \sin(\varphi - \theta)$. The flip region $\{\sin\varphi\sin(\varphi - \theta) < 0\}$ consists of two congruent intervals $(-\pi, -\pi+\theta)$ and $(0, \theta)$ lying strictly inside $(-\pi, \pi)$. Using $\int_0^\infty r^2 e^{-r^2/2}\,dr = \sqrt{\pi/2}$ and the elementary 1D trigonometric identity (proved in Lemma~\ref{lem:trig-wedge} of Appendix~\ref{app:proofs})
-\begin{equation}
-  \label{eq:trig-wedge}
-  \int_0^\theta \min\bigl(c_1 \sin\psi,\, c_2 \sin(\theta - \psi)\bigr)\,d\psi
-  = c_1 + c_2 - \sqrt{c_1^2 + c_2^2 + 2c_1 c_2 \cos\theta}
-  = \norm{v}_2 + \norm{w}_2 - \norm{v + w}_2,
-\end{equation}
-we obtain $I(v, w) = \frac{1}{2\pi}\cdot \sqrt{\frac{\pi}{2}} \cdot 2(\norm{v}_2 + \norm{w}_2 - \norm{v+w}_2) = \frac{\norm{v}_2 + \norm{w}_2 - \norm{v+w}_2}{\sqrt{2\pi}}$, proving~\eqref{eq:wedge-gaussian}. Substituting~\eqref{eq:r2-sandwich} and~\eqref{eq:wedge-gaussian} (with $w = v + \delta$) into~\eqref{eq:r2-pair-exp} yields~\eqref{eq:thm2-rem}.
+If $v = 0$, $w = 0$, or $w = \lambda v$ with $\lambda \ge 0$, both sides vanish; if $w = \lambda v$ with $\lambda < 0$, $I(v, w) = \min(1, -\lambda)\norm{v}_2\sqrt{2/\pi} = \frac{\norm{v}_2 + \norm{w}_2 - \norm{v+w}_2}{\sqrt{2\pi}}$. If $v, w$ are linearly independent with norms $c_1, c_2$ and angle $\theta \in (0, \pi)$, choosing an orthonormal basis $(b_1, b_2)$ of $\operatorname{span}(v, w)$ with $v = c_1 b_2$ and $w = -c_2\sin\theta\,b_1 + c_2\cos\theta\,b_2$, polar coordinates $(r\cos\varphi, r\sin\varphi)$ ($\varphi \in (-\pi, \pi)$) yield two congruent flip wedges $(-\pi, -\pi+\theta)$ and $(0, \theta)$. Using $\int_0^\infty r^2 e^{-r^2/2}\,dr = \sqrt{\pi/2}$ and \cref{lem:trig-wedge},
+\[
+  I(v, w) = \frac{1}{2\pi}\sqrt{\frac{\pi}{2}}\cdot 2\int_0^\theta \min\bigl(c_1\sin\psi, c_2\sin(\theta - \psi)\bigr)\,d\psi
+  = \frac{\norm{v}_2 + \norm{w}_2 - \norm{v + w}_2}{\sqrt{2\pi}}.
+\]
+Substituting~\eqref{eq:r2-sandwich} and~\eqref{eq:wedge-gaussian} ($w = v + \delta$) into~\eqref{eq:r2-pair-exp} proves~\eqref{eq:thm2-rem}.
 
-\medskip
-\noindent\textbf{Step 3: Quadratic remainder bound~\eqref{eq:thm2-quad}.}
-For any $w_1 \ne 0$ and $w_2 \in \R^d$, write $a = \norm{w_1}_2 > 0$, $b = \norm{w_2}_2 \ge 0$, $s = \norm{w_1 + w_2}_2$, and $c = \norm{w_2 - w_1}_2$. By the parallelogram law $c^2 = 2a^2 + 2b^2 - s^2$, so
-\[
-  c^2 - 2a(a + b - s)
-  = 2b^2 - 2ab + 2as - s^2
-  = (a - b)^2 + \bigl(s - (a - b)\bigr)(a + b - s) \ge 0,
-\]
-since $|a - b| \le s \le a + b$ by the triangle inequality. Dividing by $2a > 0$ gives $a + b - s \le \frac{c^2}{2a}$. Setting $w_1 = v$ and $w_2 = v + \delta$ (so $w_2 - w_1 = \delta$) yields~\eqref{eq:thm2-quad}.
+\textbf{Step 3: Quadratic bound~\eqref{eq:thm2-quad}.}
+For $w_1 \ne 0, w_2 \in \R^d$, write $a = \norm{w_1}_2, b = \norm{w_2}_2, s = \norm{w_1 + w_2}_2, c = \norm{w_2 - w_1}_2$. By $c^2 = 2a^2 + 2b^2 - s^2$, $c^2 - 2a(a + b - s) = (a - b)^2 + (s - (a - b))(a + b - s) \ge 0$. Taking $w_1 = v, w_2 = v + \delta$ yields~\eqref{eq:thm2-quad}.
 
-\medskip
-\noindent\textbf{Step 4: Global scale-free sharpness~\eqref{eq:thm2-global}.}
-By swap invariance $F(\beta_2, \beta_1) = F(\beta_1, \beta_2)$, we may assume without loss of generality that $\beta = \beta^* + \Delta$ lies in the Voronoi cell of $\beta^*$, i.e., $\Fnorm{\beta - \beta^*} \le \Fnorm{\beta - (\beta_2^*, \beta_1^*)}$, so $\dist(\beta, X_{\mathrm{pop}}^*) = \Fnorm{\Delta}$. Expanding both squared norms gives
+\textbf{Step 4: Global sharpness~\eqref{eq:thm2-global}.}
+By swap invariance, assume $\Fnorm{\beta - \beta^*} \le \Fnorm{\beta - (\beta_2^*, \beta_1^*)}$, so $\dist(\beta, X_{\mathrm{pop}}^*) = \Fnorm{\Delta}$ and $\ip{v}{v + \delta} \ge 0$. For any $w_1, w_2 \in \R^d$ with $\ip{w_1}{w_2} \ge 0$ (not both zero), setting $x := s/\sqrt{a^2 + b^2} \in [1, \sqrt{2}]$ gives $(a + b - s)/\sqrt{a^2 + b^2} \le \sqrt{2} - x$, $c/\sqrt{a^2 + b^2} = \sqrt{2 - x^2}$, and
 \[
-  \Fnorm{\Delta}^2 \le \norm{\Delta_1 + v}_2^2 + \norm{\Delta_2 - v}_2^2
-  = \Fnorm{\Delta}^2 + 2\norm{v}_2^2 + 2\ip{v}{\delta}
-  \iff \ip{v}{v + \delta} \ge 0.
+  (\sqrt{2} - 1)^2(2 - x^2) - (\sqrt{2} - x)^2 = 2(2 - \sqrt{2})(\sqrt{2} - x)(x - 1) \ge 0,
 \]
-Hence, setting $w_1 = v$ and $w_2 = v + \delta$, we have $\ip{w_1}{w_2} \ge 0$ and $\norm{w_1 - w_2}_2 = \norm{\delta}_2$. We claim that any $w_1, w_2 \in \R^d$ with $\ip{w_1}{w_2} \ge 0$ satisfy
-\begin{equation}
-  \label{eq:voronoi-para}
-  \norm{w_1}_2 + \norm{w_2}_2 - \norm{w_1 + w_2}_2
-  \le (\sqrt{2} - 1)\norm{w_1 - w_2}_2.
-\end{equation}
-Indeed, if $a = b = 0$,~\eqref{eq:voronoi-para} is trivial. Otherwise let $a = \norm{w_1}_2$, $b = \norm{w_2}_2$, $s = \norm{w_1 + w_2}_2$, $c = \norm{w_1 - w_2}_2$, and $x := s/\sqrt{a^2 + b^2}$. Because $\ip{w_1}{w_2} \ge 0$, $a^2 + b^2 \le s^2 \le (a + b)^2 \le 2(a^2 + b^2)$, so $x \in [1, \sqrt{2}]$. Furthermore, $a + b \le \sqrt{2(a^2 + b^2)}$ and $c^2 = 2(a^2 + b^2) - s^2$ imply
+hence $\norm{w_1}_2 + \norm{w_2}_2 - \norm{w_1 + w_2}_2 \le (\sqrt{2} - 1)\norm{w_1 - w_2}_2$. Applying this to $w_1 = v, w_2 = v + \delta$ inside~\eqref{eq:thm2-rem} with $\norm{\delta}_2 \le \norm{\Delta_1}_2 + \norm{\Delta_2}_2$ and $\Fnorm{\Delta} \le \norm{\Delta_1}_2 + \norm{\Delta_2}_2$ yields
 \[
-  \frac{a + b - s}{\sqrt{a^2 + b^2}} \le \sqrt{2} - x,
-  \qquad
-  \frac{c}{\sqrt{a^2 + b^2}} = \sqrt{2 - x^2}.
-\]
-Squaring both nonnegative sides of $\sqrt{2} - x \le (\sqrt{2} - 1)\sqrt{2 - x^2}$ gives
-\[
-  (\sqrt{2} - 1)^2(2 - x^2) - (\sqrt{2} - x)^2
-  = (\sqrt{2} - x)\bigl[(3 - 2\sqrt{2})(\sqrt{2} + x) - (\sqrt{2} - x)\bigr]
-  = 2(2 - \sqrt{2})(\sqrt{2} - x)(x - 1) \ge 0,
-\]
-confirming~\eqref{eq:voronoi-para} (with equality whenever $w_1 \perp w_2$ and $\norm{w_1}_2 = \norm{w_2}_2$). Combining~\eqref{eq:thm2-rem} and~\eqref{eq:voronoi-para} with $\norm{\delta}_2 \le \norm{\Delta_1}_2 + \norm{\Delta_2}_2$ and $\Fnorm{\Delta} \le \norm{\Delta_1}_2 + \norm{\Delta_2}_2$, we obtain
-\[
-  F(\beta^* + \Delta)
-  \ge \frac{1 - (\sqrt{2} - 1)}{\sqrt{2\pi}}\bigl(\norm{\Delta_1}_2 + \norm{\Delta_2}_2\bigr)
-  = \frac{2 - \sqrt{2}}{\sqrt{2\pi}}\bigl(\norm{\Delta_1}_2 + \norm{\Delta_2}_2\bigr)
+  F(\beta^* + \Delta) \ge \frac{2 - \sqrt{2}}{\sqrt{2\pi}}\bigl(\norm{\Delta_1}_2 + \norm{\Delta_2}_2\bigr)
   \ge \frac{\sqrt{2} - 1}{\sqrt{\pi}}\Fnorm{\Delta}.
-  \qedhere
 \]
 \end{proof}
 
 % ============================================================================
-\section{Local Population Geometry for General $r \ge 2$}
+\section{Local Population Geometry for General \texorpdfstring{$r \ge 2$}{r >= 2}}
 \label{sec:pop-genr}
 % ============================================================================
 
-For $r \ge 3$, antipodal points $a$ and $-a$ need not lie in complementary active cones, so we replace antipodal pairing with a general deterministic flip decomposition.
+For $r \ge 3$, antipodal points $a$ and $-a$ need not lie in complementary active cones, so we use a deterministic flip decomposition.
 
 \begin{lemma}[Deterministic pointwise flip decomposition]
   \label{lem:flip-decomp}
-  Let $\beta^* = (\beta_1^*, \dots, \beta_r^*) \in \R^{r \times d}$ and $\beta = \beta^* + \Delta \in \R^{r \times d}$, with $v_{jk} := \beta_j^* - \beta_k^*$ and $\delta_{jk} := \Delta_j - \Delta_k$. For every $a \in \bigcup_{j=1}^r C_j^*$,
+  Let $\beta^*, \beta = \beta^* + \Delta \in \R^{r \times d}$, with $v_{jk} := \beta_j^* - \beta_k^*$ and $\delta_{jk} := \Delta_j - \Delta_k$. For every $a \in \bigcup_{j=1}^r C_j^*$,
   \begin{equation}
     \label{eq:flip-decomp}
     \Bigl|\bigl|\hat y(a; \beta) - \hat y(a; \beta^*)\bigr| - \sum_{j=1}^r \ind_{C_j^*}(a)\,|\ip{a}{\Delta_j}|\Bigr|
@@ -459,13 +367,13 @@ For $r \ge 3$, antipodal points $a$ and $-a$ need not lie in complementary activ
   \end{equation}
 \end{lemma}
 \begin{proof}
-Fix $a \in C_j^*$, so $\ip{a}{v_{jk}} > 0$ for all $k \ne j$ and $\hat y(a; \beta^*) = \ip{a}{\beta_j^*}$. Pick $k \in \argmax_{\ell \in [r]} \ip{a}{\beta_\ell}$. If $\ip{a}{\beta_k} = \ip{a}{\beta_j}$, then $\hat y(a; \beta) = \ip{a}{\beta_j^* + \Delta_j}$, so the left-hand side of~\eqref{eq:flip-decomp} is $0$. Otherwise $k \ne j$ and $\ip{a}{\beta_k} > \ip{a}{\beta_j}$, i.e., $\ip{a}{v_{jk} + \delta_{jk}} < 0$. Since $\ip{a}{v_{jk}} > 0$, the sign-flip indicator $\ind\{\ip{a}{v_{jk}}\ip{a}{v_{jk} + \delta_{jk}} < 0\}$ equals $1$. By the reverse triangle inequality,
+Fix $a \in C_j^*$, so $\ip{a}{v_{jk}} > 0$ for all $k \ne j$ and $\hat y(a; \beta^*) = \ip{a}{\beta_j^*}$. Pick $k \in \argmax_{\ell \in [r]} \ip{a}{\beta_\ell}$. If $\ip{a}{\beta_k} = \ip{a}{\beta_j}$, the left-hand side of~\eqref{eq:flip-decomp} vanishes. Otherwise $k \ne j$ and $\ip{a}{v_{jk} + \delta_{jk}} < 0$, so $\ind\{\ip{a}{v_{jk}}\ip{a}{v_{jk} + \delta_{jk}} < 0\} = 1$ and the reverse triangle inequality gives
 \[
   \Bigl|\bigl|\hat y(a; \beta) - \hat y(a; \beta^*)\bigr| - |\ip{a}{\Delta_j}|\Bigr|
   \le \bigl|(\ip{a}{\beta_k} - \ip{a}{\beta_j^*}) - \ip{a}{\Delta_j}\bigr|
-  = |\ip{a}{\beta_k - \beta_j}| = |\ip{a}{v_{jk} + \delta_{jk}}|.
+  = |\ip{a}{v_{jk} + \delta_{jk}}|.
 \]
-Since $v_{kj} = -v_{jk}$ and $\delta_{kj} = -\delta_{jk}$, each unordered pair $\{j, k\}$ appears symmetrically in the right-hand sum of~\eqref{eq:flip-decomp}, completing the proof.
+Symmetry under $(j, k) \mapsto (k, j)$ concludes the proof.
 \end{proof}
 
 \begin{lemma}[Exact Gaussian polar flip integral]
@@ -476,36 +384,15 @@ Since $v_{kj} = -v_{jk}$ and $\delta_{kj} = -\delta_{jk}$, each unordered pair $
     = \frac{\norm{w_2}_2(1 - \cos\theta)}{\sqrt{2\pi}}
     \le \frac{\norm{w_2 - w_1}_2^2}{2\sqrt{2\pi}\,\norm{w_1}_2},
   \]
-  where $\theta \in [0, \pi]$ is the angle between $w_1$ and $w_2$ (with the convention that the middle expression is $0$ when $w_2 = 0$).
+  where $\theta \in [0, \pi]$ is the angle between $w_1$ and $w_2$ (middle expression set to $0$ if $w_2 = 0$).
 \end{lemma}
 \begin{proof}
-We handle all four geometric regimes explicitly (including $d = 1$):
-\begin{itemize}[leftmargin=*,nosep]
-  \item \emph{Case 1 ($w_2 = 0$):} Both the left-hand expectation and the middle expression equal $0 \le \frac{\norm{w_1}_2}{2\sqrt{2\pi}}$.
-  \item \emph{Case 2 (Collinear, same direction: $w_2 = \lambda w_1$ with $\lambda > 0$):} Here $\ip{a}{w_1}\ip{a}{w_2} = \lambda\ip{a}{w_1}^2 \ge 0$ for every $a \in \R^d$, so the flip indicator vanishes identically, $\theta = 0$, and $0 = 0 \le \frac{\norm{w_2 - w_1}_2^2}{2\sqrt{2\pi}\norm{w_1}_2}$.
-  \item \emph{Case 3 (Collinear, opposite direction: $w_2 = \lambda w_1$ with $\lambda < 0$):} Here $\ip{a}{w_1}\ip{a}{w_2} = \lambda\ip{a}{w_1}^2 < 0$ whenever $\ip{a}{w_1} \ne 0$, which holds with probability $1$ since $w_1 \ne 0$. Hence $\theta = \pi$ and
-  \[
-    \E\bigl[|\ip{a}{w_2}|\,\ind\{\ip{a}{w_1}\ip{a}{w_2} < 0\}\bigr]
-    = \E\bigl[|\ip{a}{w_2}|\bigr]
-    = \norm{w_2}_2\sqrt{\frac{2}{\pi}}
-    = \frac{\norm{w_2}_2(1 - \cos\pi)}{\sqrt{2\pi}}.
-  \]
-  Moreover, $\norm{w_2 - w_1}_2^2 = (\norm{w_1}_2 + \norm{w_2}_2)^2 \ge 4\norm{w_1}_2\norm{w_2}_2 = 2\norm{w_1}_2\norm{w_2}_2(1 - \cos\pi)$, giving the upper bound. Note that Cases~1--3 exhaust all configurations when $d = 1$.
-  \item \emph{Case 4 (Linearly independent $w_1, w_2$, necessarily $d \ge 2$):} Here $\theta \in (0, \pi)$ and $\operatorname{span}(w_1, w_2)$ is two-dimensional. Choosing an orthonormal basis $(e_1, e_2)$ of $\operatorname{span}(w_1, w_2)$ with $w_1 = \norm{w_1}_2 e_1$ and $w_2 = \norm{w_2}_2(\cos\theta\,e_1 + \sin\theta\,e_2)$, the projection $(\ip{a}{e_1}, \ip{a}{e_2}) \sim \mathcal{N}(0, I_2)$ in polar coordinates $(r\cos\varphi, r\sin\varphi)$ satisfies $\ip{a}{w_1} = r\norm{w_1}_2\cos\varphi$ and $\ip{a}{w_2} = r\norm{w_2}_2\cos(\varphi - \theta)$. The flip event $\{\cos\varphi\cos(\varphi - \theta) < 0\}$ consists of two congruent opposite wedges of angular width $\theta$, on each of which $|\ip{a}{w_2}| = \norm{w_2}_2 r \sin(\theta - \psi)$ for $\psi \in (0, \theta)$. Integrating $r$ and $\psi$ yields
-  \[
-    \E\bigl[|\ip{a}{w_2}|\,\ind\{\ip{a}{w_1}\ip{a}{w_2} < 0\}\bigr]
-    = 2\cdot \frac{1}{2\pi}\cdot \sqrt{\frac{\pi}{2}}\cdot \norm{w_2}_2 \int_0^\theta \sin(\theta - \psi)\,d\psi
-    = \frac{\norm{w_2}_2(1 - \cos\theta)}{\sqrt{2\pi}}.
-  \]
-  By the law of cosines, $\norm{w_2 - w_1}_2^2 = (\norm{w_1}_2 - \norm{w_2}_2)^2 + 2\norm{w_1}_2\norm{w_2}_2(1 - \cos\theta) \ge 2\norm{w_1}_2\norm{w_2}_2(1 - \cos\theta)$, and dividing by $2\norm{w_1}_2$ gives the upper bound. \qedhere
-\end{itemize}
+If $w_2 = 0$ or $w_2 = \lambda w_1$ with $\lambda > 0$, both sides vanish. If $w_2 = \lambda w_1$ with $\lambda < 0$, $\theta = \pi$, the indicator holds a.s., $\E[|\ip{a}{w_2}|] = \norm{w_2}_2\sqrt{2/\pi}$, and $\norm{w_2 - w_1}_2^2 = (\norm{w_1}_2 + \norm{w_2}_2)^2 \ge 4\norm{w_1}_2\norm{w_2}_2$. If $w_1, w_2$ are linearly independent ($d \ge 2$, $\theta \in (0, \pi)$), choosing an orthonormal basis $(e_1, e_2)$ of $\operatorname{span}(w_1, w_2)$ with $w_1 = \norm{w_1}_2 e_1$ and $w_2 = \norm{w_2}_2(\cos\theta\,e_1 + \sin\theta\,e_2)$, polar coordinates $(r\cos\varphi, r\sin\varphi)$ give two congruent flip wedges $(\frac{\pi}{2}, \frac{\pi}{2}+\theta)$ and $(-\frac{\pi}{2}, -\frac{\pi}{2}+\theta)$ on each of which $|\ip{a}{w_2}| = r\norm{w_2}_2\sin(\theta - \psi)$, $\psi \in (0, \theta)$. Integrating $r$ and $\psi$ gives $\frac{\norm{w_2}_2(1 - \cos\theta)}{\sqrt{2\pi}}$, and $\norm{w_2 - w_1}_2^2 = (\norm{w_1}_2 - \norm{w_2}_2)^2 + 2\norm{w_1}_2\norm{w_2}_2(1 - \cos\theta)$ gives the upper bound.
 \end{proof}
-
-Next, we lower-bound the directional cone conditioning modulus $\alpha_j$ purely in terms of the cone probability $\pi_j$.
 
 \begin{lemma}[Dimension-free Gaussian bathtub lower bound]
   \label{lem:bathtub}
-  Let $a \sim \mathcal{N}(0, I_d)$ and let $C \subseteq \R^d$ be any measurable set with $\Prob(a \in C) \ge p$ for some $p \in [0, 1]$. Then for every $u \in \Sph^{d-1}$,
+  Let $a \sim \mathcal{N}(0, I_d)$ and let $C \subseteq \R^d$ be measurable with $\Prob(a \in C) \ge p$ for $p \in [0, 1]$. Then for every $u \in \Sph^{d-1}$,
   \begin{equation}
     \label{eq:bathtub}
     \E\bigl[\ind_C(a)\,|\ip{a}{u}|\bigr]
@@ -514,23 +401,12 @@ Next, we lower-bound the directional cone conditioning modulus $\alpha_j$ purely
   \end{equation}
 \end{lemma}
 \begin{proof}
-Set $Z := \ip{a}{u} \sim \mathcal{N}(0, 1)$ and $t := \sqrt{\frac{\pi}{2}}\,p \ge 0$. For every realization, $(\ind_C(a) - \ind_{\{|Z| \le t\}})(|Z| - t) \ge 0$ (both factors are $\le 0$ when $|Z| \le t$ and $\ge 0$ when $|Z| > t$), so
-\[
-  \ind_C(a)|Z| \ge \ind_{\{|Z| \le t\}}|Z| + t\bigl(\ind_C(a) - \ind_{\{|Z| \le t\}}\bigr).
-\]
-Since the standard Gaussian density satisfies $\frac{1}{\sqrt{2\pi}}e^{-z^2/2} \le \frac{1}{\sqrt{2\pi}}$, we have $\Prob(|Z| \le t) \le \frac{2t}{\sqrt{2\pi}} = p \le \Prob(C)$, so the expectation of the second term is nonnegative. For the first term,
-\[
-  \E\bigl[\ind_{\{|Z| \le t\}}|Z|\bigr]
-  = 2\int_0^t \frac{z}{\sqrt{2\pi}}e^{-z^2/2}\,dz
-  = \sqrt{\frac{2}{\pi}}\bigl(1 - e^{-t^2/2}\bigr)
-  = \sqrt{\frac{2}{\pi}}\bigl(1 - e^{-\pi p^2/4}\bigr).
-\]
-Finally, let $x := \frac{\pi}{4}p^2 \in [0, \frac{\pi}{4}] \subset [0, \frac{4}{5}]$. Using $e^x \ge 1 + x + \frac{x^2}{2} + \frac{x^3}{6}$, one checks directly that $(1 - \frac{2}{3}x)(1 + x + \frac{x^2}{2} + \frac{x^3}{6}) - 1 = x(\frac{1}{3} - \frac{x}{6} - \frac{x^2}{6} - \frac{x^3}{9}) \ge 0$ for all $x \in [0, \frac{4}{5}]$, whence $1 - e^{-x} \ge \frac{2}{3}x$ and $\sqrt{\frac{2}{\pi}}(1 - e^{-x}) \ge \sqrt{\frac{2}{\pi}}\cdot \frac{2}{3}\cdot \frac{\pi}{4}p^2 = \frac{\sqrt{2\pi}}{6}p^2$.
+Set $Z := \ip{a}{u} \sim \mathcal{N}(0, 1)$ and $t := \sqrt{\frac{\pi}{2}}\,p$. Pointwise, $(\ind_C(a) - \ind_{\{|Z| \le t\}})(|Z| - t) \ge 0$, so $\ind_C(a)|Z| \ge \ind_{\{|Z| \le t\}}|Z| + t(\ind_C(a) - \ind_{\{|Z| \le t\}})$. Since $\Prob(|Z| \le t) \le \frac{2t}{\sqrt{2\pi}} = p \le \Prob(C)$, taking expectations gives $\E[\ind_C(a)|Z|] \ge \E[\ind_{\{|Z| \le t\}}|Z|] = \sqrt{\frac{2}{\pi}}(1 - e^{-\pi p^2/4})$. For $x := \frac{\pi}{4}p^2 \in [0, \frac{\pi}{4}] \subset [0, \frac{4}{5}]$, $(1 - \frac{2}{3}x)(1 + x + \frac{x^2}{2} + \frac{x^3}{6}) \ge 1$ implies $1 - e^{-x} \ge \frac{2}{3}x$ and hence~\eqref{eq:bathtub}.
 \end{proof}
 
 \begin{proposition}[Tightness of $\Theta(p^2)$ and $\ell_1$-vs.-$\ell_2$ cone conditioning advantage]
   \label{prop:l1-vs-l2}
-  Let $d \ge 2$ and $p \in (0, 1/2)$, and define the polyhedral wedge cone $C_p := \{a \in \R^d : a_1 > 0,\, |a_2| \le a_1\tan(\pi p)\}$ of Gaussian measure $\Prob(a \in C_p) = p$. (At the boundary $p = 1/2$, set $C_{1/2} := \{a \in \R^d : a_1 > 0\}$.) Then the $\ell_1$ directional cone modulus $\alpha_{\ell_1}(C_p) := \inf_{u \in \Sph^{d-1}} \E[\ind_{C_p}(a)|\ip{a}{u}|]$ satisfies the two-sided $\Theta(p^2)$ bound
+  Let $d \ge 2$ and $p \in (0, 1/2)$, and define $C_p := \{a \in \R^d : a_1 > 0,\, |a_2| \le a_1\tan(\pi p)\}$ of Gaussian measure $p$ (with $C_{1/2} := \{a \in \R^d : a_1 > 0\}$). Then $\alpha_{\ell_1}(C_p) := \inf_{u \in \Sph^{d-1}} \E[\ind_{C_p}(a)|\ip{a}{u}|]$ satisfies
   \[
     \frac{\sqrt{2\pi}}{6}\,p^2
     \le \alpha_{\ell_1}(C_p)
@@ -538,34 +414,14 @@ Finally, let $x := \frac{\pi}{4}p^2 \in [0, \frac{\pi}{4}] \subset [0, \frac{4}{
     = \frac{1 - \cos(\pi p)}{\sqrt{2\pi}}
     = \frac{\pi^{3/2}}{2\sqrt{2}}\,p^2 + O(p^4),
   \]
-  whereas the $\ell_2$ cone Gram matrix $G_p := \E[\ind_{C_p}(a)\,aa^\top]$ is diagonal with exact eigenvalues
-  \[
-    \lambda_1 = p + \frac{\sin(2\pi p)}{2\pi}, \qquad
-    \lambda_2 = p - \frac{\sin(2\pi p)}{2\pi}, \qquad
-    \lambda_3 = \dots = \lambda_d = p,
-  \]
-  and therefore its exact minimum eigenvalue scales one full power worse in $p$:
+  whereas the $\ell_2$ cone Gram matrix $G_p := \E[\ind_{C_p}(a)\,aa^\top]$ is diagonal with eigenvalues $\lambda_1 = p + \frac{\sin(2\pi p)}{2\pi}$, $\lambda_2 = p - \frac{\sin(2\pi p)}{2\pi}$, and $\lambda_3 = \dots = \lambda_d = p$, so
   \[
     \lambda_{\min}(G_p) = \lambda_2 = p - \frac{\sin(2\pi p)}{2\pi} = \frac{2\pi^2}{3}\,p^3 + O(p^5).
   \]
 \end{proposition}
 \begin{proof}
-The lower bound $\alpha_{\ell_1}(C_p) \ge \frac{\sqrt{2\pi}}{6}p^2$ follows immediately from Lemma~\ref{lem:bathtub}. For the upper bound and the Gram matrix $G_p$, observe that $C_p$ depends only on $(a_1, a_2)$, is invariant under the reflection $a_2 \mapsto -a_2$, and is independent of $(a_3, \dots, a_d) \sim \mathcal{N}(0, I_{d-2})$. Consequently, $\E[\ind_{C_p} a_1 a_2] = 0$ by oddness in $a_2$, and for every $k \ge 3$ and $j \ne k$, $\E[\ind_{C_p} a_j a_k] = \E[\ind_{C_p} a_j]\E[a_k] = 0$ by independence. Hence $G_p$ is strictly diagonal with entries $\lambda_k = \E[\ind_{C_p} a_k^2]$. For $k \ge 3$, independence gives $\lambda_k = \Prob(a \in C_p)\E[a_k^2] = p$. Writing $(a_1, a_2) = (r\cos\varphi, r\sin\varphi)$ on $\varphi \in [-\pi p, \pi p]$ with $\E[r] = \sqrt{\pi/2}$ and $\E[r^2] = 2$,
-\[
-  \E\bigl[\ind_{C_p}|a_2|\bigr]
-  = \frac{1}{2\pi}\sqrt{\frac{\pi}{2}}\int_{-\pi p}^{\pi p}|\sin\varphi|\,d\varphi
-  = \frac{1 - \cos(\pi p)}{\sqrt{2\pi}},
-\]
-and similarly
-\[
-  \lambda_1 = \frac{2}{2\pi}\int_{-\pi p}^{\pi p}\cos^2\varphi\,d\varphi = p + \frac{\sin(2\pi p)}{2\pi},
-  \qquad
-  \lambda_2 = \frac{2}{2\pi}\int_{-\pi p}^{\pi p}\sin^2\varphi\,d\varphi = p - \frac{\sin(2\pi p)}{2\pi}.
-\]
-Because $p \in (0, 1/2]$, we have $\sin(2\pi p) \ge 0$, so $\lambda_2 \le p \le \lambda_1$, proving $\lambda_{\min}(G_p) = \lambda_2 = \frac{2\pi^2}{3}p^3 + O(p^5)$.
+The lower bound is \cref{lem:bathtub}. Reflection symmetry $a_2 \mapsto -a_2$ and independence of $(a_3, \dots, a_d)$ imply $G_p$ is diagonal with $\lambda_k = p$ ($k \ge 3$). In polar coordinates $(a_1, a_2) = (r\cos\varphi, r\sin\varphi)$ on $\varphi \in [-\pi p, \pi p]$ ($\E[r] = \sqrt{\pi/2}$, $\E[r^2] = 2$), direct integration gives $\E[\ind_{C_p}|a_2|] = \frac{1 - \cos(\pi p)}{\sqrt{2\pi}}$ and $\lambda_1, \lambda_2 = p \pm \frac{\sin(2\pi p)}{2\pi}$, with $\lambda_2 \le p \le \lambda_1$.
 \end{proof}
-
-Combining Lemmas~\ref{lem:flip-decomp}--\ref{lem:bathtub} immediately yields general-$r$ population sharp growth.
 
 \begin{theorem}[General-$r$ population sharp growth on a dimension-free ball]
   \label{thm:pop-genr}
@@ -576,18 +432,14 @@ Combining Lemmas~\ref{lem:flip-decomp}--\ref{lem:bathtub} immediately yields gen
     \le \sum_{1 \le j < k \le r} \frac{\norm{\Delta_j - \Delta_k}_2^2}{2\sqrt{2\pi}\,\norm{v_{jk}}_2}
     \le \frac{r\,\Fnorm{\Delta}^2}{2\sqrt{2\pi}\,\Delta_{\min}}.
   \end{equation}
-  Consequently, for every $\beta \in B(\beta^*, \rho_{\mathrm{pop}})$ with
-  \[
-    \rho_{\mathrm{pop}} := \min\Bigl\{\frac{\sqrt{2\pi}\,\alpha_{\min}}{r}\,\Delta_{\min},\; \frac{1}{\sqrt{2}}\,\Delta_{\min}\Bigr\},
-  \]
-  we have $\dist(\beta, X_{\mathrm{pop}}^*) = \Fnorm{\beta - \beta^*}$ and
+  Consequently, for every $\beta \in B(\beta^*, \rho_{\mathrm{pop}})$ with $\rho_{\mathrm{pop}} := \min\bigl\{\frac{\sqrt{2\pi}\,\alpha_{\min}}{r}\,\Delta_{\min},\; \frac{1}{\sqrt{2}}\,\Delta_{\min}\bigr\}$, we have $\dist(\beta, X_{\mathrm{pop}}^*) = \Fnorm{\beta - \beta^*}$ and
   \[
     F(\beta) \ge \frac{\alpha_{\min}}{2}\,\dist(\beta, X_{\mathrm{pop}}^*)
     \ge \frac{\sqrt{2\pi}}{12}\,\pi_{\min}^2\,\dist(\beta, X_{\mathrm{pop}}^*).
   \]
 \end{theorem}
 \begin{proof}
-Taking expectations in Lemma~\ref{lem:flip-decomp} (noting $\Prob(\bigcup_{j=1}^r C_j^*) = 1$), applying Lemma~\ref{lem:polar-flip} with $w_1 = v_{jk}$ and $w_2 = v_{jk} + \delta_{jk}$, and using the identity $\sum_{1\le j < k \le r} \norm{\Delta_j - \Delta_k}_2^2 = r\Fnorm{\Delta}^2 - \norm{\sum_{j=1}^r \Delta_j}_2^2 \le r\Fnorm{\Delta}^2$ proves~\eqref{eq:thm3-rem}. By definition of $\alpha_{\min}$ (valid for all $\Delta_j \in \R^d$, including $\Delta_j = 0$), $\sum_{j=1}^r \E[\ind_{C_j^*}(a)|\ip{a}{\Delta_j}|] \ge \alpha_{\min}\Lonenorm{\Delta} \ge \alpha_{\min}\Fnorm{\Delta}$, so on $\Fnorm{\Delta} \le \frac{\sqrt{2\pi}\alpha_{\min}}{r}\Delta_{\min}$ we get $F(\beta^* + \Delta) \ge \frac{\alpha_{\min}}{2}\Fnorm{\Delta}$. Finally, any non-identity permutation $\pi \in S_r$ moves at least two indices, so $\Fnorm{\pi(\beta^*) - \beta^*}^2 \ge 2\Delta_{\min}^2$, whence $\dist(\beta, X_{\mathrm{pop}}^*) = \Fnorm{\beta - \beta^*}$ whenever $\Fnorm{\beta - \beta^*} \le \frac{1}{\sqrt{2}}\Delta_{\min}$. Applying Lemma~\ref{lem:bathtub} gives $\alpha_{\min} \ge \frac{\sqrt{2\pi}}{6}\pi_{\min}^2$.
+Taking expectations in \cref{lem:flip-decomp}, applying \cref{lem:polar-flip} with $w_1 = v_{jk}$ and $w_2 = v_{jk} + \delta_{jk}$, and using $\sum_{j < k} \norm{\Delta_j - \Delta_k}_2^2 = r\Fnorm{\Delta}^2 - \norm{\sum_j \Delta_j}_2^2 \le r\Fnorm{\Delta}^2$ proves~\eqref{eq:thm3-rem}. Using~\eqref{eq:cone-moduli}, the linear term is at least $\alpha_{\min}\Lonenorm{\Delta} \ge \alpha_{\min}\Fnorm{\Delta}$, giving $F(\beta^* + \Delta) \ge \frac{\alpha_{\min}}{2}\Fnorm{\Delta}$ for $\Fnorm{\Delta} \le \frac{\sqrt{2\pi}\alpha_{\min}}{r}\Delta_{\min}$. Every non-identity $\pi \in S_r$ moves at least two indices, so $\Fnorm{\pi(\beta^*) - \beta^*} \ge \sqrt{2}\Delta_{\min}$ and $\dist(\beta, X_{\mathrm{pop}}^*) = \Fnorm{\beta - \beta^*}$ on $B(\beta^*, \frac{1}{\sqrt{2}}\Delta_{\min})$. Applying \cref{lem:bathtub} finishes the proof.
 \end{proof}
 
 % ============================================================================
@@ -595,13 +447,13 @@ Taking expectations in Lemma~\ref{lem:flip-decomp} (noting $\Prob(\bigcup_{j=1}^
 \label{sec:finite-sample}
 % ============================================================================
 
-We now state and prove our main finite-sample theorem, resolving the quantitative Gaussian sharp growth question of Charisopoulos and Davis \cite[Section~5.2.2]{charisopoulos2024superpolyak} for general $r \ge 2$ and establishing robustness under oblivious outlier support up to $\alpha < 1/2$.
+We now establish our main finite-sample result, resolving the quantitative Gaussian sharp-growth question of \cite[Section~5.2.2]{charisopoulos2024superpolyak} for general $r \ge 2$ under oblivious outlier support up to $\alpha < 1/2$.
 
 \subsection{Main Theorem, Explicit Corollaries, and Breakdown Converse}
 
-\begin{theorem}[Finite-sample high-probability sharp growth under oblivious outliers]
+\begin{theorem}[Finite-sample sharp growth under oblivious outliers]
   \label{thm:main-finite}
-  Let $d \ge 1$, $r \ge 2$, and $\beta^* \in \R^{r \times d}$ satisfy $\Delta_{\min} > 0$ and $\alpha_{\min} > 0$ (in particular, $\pi_{\min} > 0$ implies $\alpha_{\min} \ge \frac{\sqrt{2\pi}}{6}\pi_{\min}^2 > 0$ by Lemma~\ref{lem:bathtub}). Let $a_1, \dots, a_m \stackrel{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0, I_d)$ and fix an oblivious outlier index set $S_{\mathrm{bad}} \subseteq [m]$ (independent of $A$) of size $|S_{\mathrm{bad}}| = \alpha m$ with $\alpha \in [0, 1/2)$. Set
+  Let $d \ge 1$, $r \ge 2$, and $\beta^* \in \R^{r \times d}$ satisfy $\Delta_{\min} > 0$ and $\alpha_{\min} > 0$ (in particular, $\pi_{\min} > 0$ implies $\alpha_{\min} \ge \frac{\sqrt{2\pi}}{6}\pi_{\min}^2 > 0$ by \cref{lem:bathtub}). Let $a_1, \dots, a_m \stackrel{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0, I_d)$ and fix an oblivious outlier index set $S_{\mathrm{bad}} \subseteq [m]$ (independent of $A$) of size $|S_{\mathrm{bad}}| = \alpha m$ with $\alpha \in [0, 1/2)$. Set
   \[
     \gamma := (1 - 2\alpha)\alpha_{\min},
     \qquad
@@ -619,253 +471,156 @@ We now state and prove our main finite-sample theorem, resolving the quantitativ
       \frac{22}{3\eta}\Bigl(d\log\frac{9}{\eta} + \log\frac{3r^2}{2\delta_{\mathrm{fail}}}\Bigr)
     \right\}.
   \end{equation}
-  Then there exists an event $\mathcal{E}$ of probability at least $1 - \delta_{\mathrm{fail}}$ on which, \emph{simultaneously for every corruption vector} $\xi \in \R^m$ supported on $S_{\mathrm{bad}}$ (including arbitrary unbounded, data-dependent corruptions $\xi(A)$), the empirical risk $f(\beta) = \frac{1}{m}\sum_{i=1}^m |y_i - \hat y(a_i; \beta)|$ with $y_i = \hat y(a_i; \beta^*) + \xi_i$ satisfies:
-  \begin{enumerate}[label=(\arabic*),leftmargin=*,nosep]
+  Then there exists a measurable event $\mathcal{E}$ (depending only on $A, \beta^*, S_{\mathrm{bad}}$) with $\Prob(\mathcal{E}) \ge 1 - \delta_{\mathrm{fail}}$ on which, \emph{simultaneously for every corruption vector} $\xi \in \R^m$ supported on $S_{\mathrm{bad}}$ (including arbitrary unbounded, data-dependent corruptions $\xi(A)$), the empirical risk $f(\beta) = \frac{1}{m}\sum_{i=1}^m |y_i - \hat y(a_i; \beta)|$ with $y_i = \hat y(a_i; \beta^*) + \xi_i$ satisfies:
+  \begin{enumerate}[label=(\arabic*)]
     \item \emph{(Uniform macroscopic sharp growth.)} For all $\beta \in B(\beta^*, \rho)$,
     \begin{equation}
       \label{eq:thm4-growth}
       f(\beta) - f(\beta^*) \ge \frac{\gamma}{4}\,\Lonenorm{\beta - \beta^*} \ge \frac{\gamma}{4}\,\Fnorm{\beta - \beta^*}.
     \end{equation}
     In particular, $\beta^*$ is an isolated strict local minimizer and the unique minimizer of $f$ over $B(\beta^*, \rho)$.
-    \item \emph{(Global Lipschitz continuity.)} For all $\beta, \beta' \in \R^{r \times d}$,
-    \[
-      \bigl|f(\beta) - f(\beta')\bigr| \le 2\,\Fnorm{\beta - \beta'}.
-    \]
-    \item \emph{(Noiseless distance identity.)} If $\xi \equiv 0$, then for every $\beta \in B(\beta^*, \rho/2)$ and every global minimizer $z \in X^*$ (i.e., $f(z) = 0$), $\Fnorm{\beta - \beta^*} \le \Fnorm{\beta - z}$; hence $\dist(\beta, X^*) = \Fnorm{\beta - \beta^*}$ and $f(\beta) - f^* \ge \frac{\gamma}{4}\dist(\beta, X^*)$ on $B(\beta^*, \rho/2)$ (in particular, $f(\beta) - f^* \ge \frac{\alpha_{\min}}{4}\dist(\beta, X^*)$ when $S_{\mathrm{bad}} = \emptyset$, i.e., $\alpha = 0$).
+    \item \emph{(Global Lipschitz continuity.)} $|f(\beta) - f(\beta')| \le 2\Fnorm{\beta - \beta'}$ for all $\beta, \beta' \in \R^{r \times d}$.
+    \item \emph{(Noiseless distance identity.)} If $\xi \equiv 0$, then $X^* \cap B(\beta^*, \rho) = \{\beta^*\}$, and for every $\beta \in B(\beta^*, \rho/2)$ and every global minimizer $z \in X^*$ ($f(z) = 0$), $\Fnorm{\beta - \beta^*} \le \Fnorm{\beta - z}$; hence $\dist(\beta, X^*) = \Fnorm{\beta - \beta^*}$ and $f(\beta) - f^* \ge \frac{\gamma}{4}\dist(\beta, X^*)$ on $B(\beta^*, \rho/2)$ (in particular, $f(\beta) - f^* \ge \frac{\alpha_{\min}}{4}\dist(\beta, X^*)$ when $S_{\mathrm{bad}} = \emptyset$).
   \end{enumerate}
 \end{theorem}
 
-\begin{remark}[No hidden hypotheses and $\pi_{\min}$-only version]
-  Observe that~\eqref{eq:sample-complexity} has no dependence on the separation condition number $\kappa = \Delta_{\max}/\Delta_{\min}$ and no $\log(m/d)$ factor. Moreover, although our elementary operator-norm proof (Lemma~\ref{lem:op-norm}) uses $m \ge 32d$, this inequality is \emph{automatically implied} by the third branch of~\eqref{eq:sample-complexity}: since $d \ge 1$, $\alpha_{\min} \le \E[|\ip{a}{u}|] = \sqrt{2/\pi} < 1$, so $\gamma < 1$ and $\frac{64}{\gamma^2}\log(1 + \frac{16}{\gamma}) > 64\log 17 > 64 > 32$. Replacing $\alpha_{\min}$ by $\frac{\sqrt{2\pi}}{6}\pi_{\min}^2$ via Lemma~\ref{lem:bathtub} yields a purely geometric version stated solely in terms of $\pi_{\min} > 0$ (verified directly in Lean as \texttt{theorem4\_from\_pi\_min}). Note also that~\eqref{eq:thm4-growth} implies $\beta^*$ is the unique minimizer over $B(\beta^*, \rho)$, without automatically ruling out higher-valued spurious local minima elsewhere inside $B(\beta^*, \rho)$.
+\begin{remark}[Sample complexity structure and geometric scope]
+  \label[remark]{rem:main-finite}
+  Equation~\eqref{eq:sample-complexity} has zero dependence on $\kappa = \Delta_{\max}/\Delta_{\min}$ and no $\log(m/d)$ factor. Since $d \ge 1$, $\alpha_{\min} \le \sqrt{2/\pi} < 1$, whence $\gamma < 1$ and $\frac{64}{\gamma^2}\log(1 + \frac{16}{\gamma}) > 64\log 17 > 181 > 32 > 16$; thus the $16d$ branch is redundant (retained for verbatim alignment with our Lean~4 declaration) and $m \ge 32d$ holds automatically. Substituting $\alpha_{\min} \ge \frac{\sqrt{2\pi}}{6}\pi_{\min}^2$ (\cref{lem:bathtub}) yields a purely geometric version stated solely in terms of $\pi_{\min} > 0$ (verified in Lean as \texttt{theorem4\_from\_pi\_min}). As noted in \cref{sec:notation}, $\pi_{\min} > 0$ holds iff every $\beta_j^*$ is a strict vertex of $\operatorname{conv}\{\beta_1^*, \dots, \beta_r^*\}$, requiring $d \ge 2$ when $r \ge 3$ while allowing $d = 1$ when $r = 2$. Finally,~\eqref{eq:thm4-growth} does not exclude higher-valued spurious local minima elsewhere inside $B(\beta^*, \rho)$.
 \end{remark}
 
 \begin{corollary}[Explicit constants for noiseless $r = 2$]
   \label{cor:r2-explicit}
-  Let $r = 2$, $\beta_1^* \ne \beta_2^*$, $v = \beta_1^* - \beta_2^*$, and $\xi \equiv 0$ ($\alpha = 0$). Then $\alpha_{\min} = \gamma = \frac{1}{\sqrt{2\pi}}$, $\eta = \frac{1}{26\sqrt{2\pi}}$, $\rho = \frac{\norm{v}_2}{52\sqrt{\pi}} \approx 0.010850\norm{v}_2$, and $\rho/2 = \frac{\norm{v}_2}{104\sqrt{\pi}} \approx 0.005425\norm{v}_2$. Whenever
-  \[
-    m \ge 3400\,d + 480\log\frac{6}{\delta_{\mathrm{fail}}},
-  \]
-  with probability at least $1 - \delta_{\mathrm{fail}}$, on the macroscopic ball $B\bigl(\beta^*, \frac{\norm{v}_2}{104\sqrt{\pi}}\bigr)$ we have
+  Let $r = 2$, $\beta_1^* \ne \beta_2^*$, $v = \beta_1^* - \beta_2^*$, and $\xi \equiv 0$ ($\alpha = 0$). Then $\alpha_{\min} = \gamma = \frac{1}{\sqrt{2\pi}}$, $\eta = \frac{1}{26\sqrt{2\pi}}$, $\rho = \frac{\norm{v}_2}{52\sqrt{\pi}} \approx 0.010850\norm{v}_2$, and $\rho/2 = \frac{\norm{v}_2}{104\sqrt{\pi}} \approx 0.005425\norm{v}_2$. Whenever $m \ge 3400\,d + 480\log(6/\delta_{\mathrm{fail}})$, with probability at least $1 - \delta_{\mathrm{fail}}$, on $B(\beta^*, \frac{\norm{v}_2}{104\sqrt{\pi}})$ we have
   \[
     f(\beta) - f^* \ge \frac{1}{4\sqrt{2\pi}}\,\dist(\beta, X^*) \approx 0.0997\,\dist(\beta, X^*),
     \qquad \frac{L}{\mu} \le 8\sqrt{2\pi} \approx 20.05.
   \]
 \end{corollary}
 \begin{proof}
-Direct arithmetic evaluation of the four branches of~\eqref{eq:sample-complexity} at $r = 2$, $\gamma = (2\pi)^{-1/2}$, $\eta = (26\sqrt{2\pi})^{-1}$ gives $\frac{64}{\gamma^2}\log(1 + \frac{16}{\gamma}) \approx 1494.35 < 3400$, $\frac{64}{\gamma^2} \approx 402.12 < 480$, $\frac{22}{3\eta}\log\frac{9}{\eta} \approx 3046.45 < 3400$, and $\frac{22}{3\eta} \approx 477.93 < 480$.
+Direct evaluation of~\eqref{eq:sample-complexity} at $r = 2, \gamma = (2\pi)^{-1/2}, \eta = (26\sqrt{2\pi})^{-1}$ gives $\frac{64}{\gamma^2}\log(1 + \frac{16}{\gamma}) \approx 1494.35 < 3400$, $\frac{64}{\gamma^2} \approx 402.12 < 480$, $\frac{22}{3\eta}\log\frac{9}{\eta} \approx 3046.45 < 3400$, and $\frac{22}{3\eta} \approx 477.93 < 480$.
 \end{proof}
 
-\begin{corollary}[Verification of Charisopoulos--Davis \texttt{(A1)} and algorithmic consequences]
+\begin{corollary}[Verification of \cite{charisopoulos2024superpolyak} \texttt{(A1)} and algorithmic caveats]
   \label{cor:superpolyak}
-  In the noiseless setting of Theorem~\ref{thm:main-finite}, on the event $\mathcal{E}$ (probability $\ge 1 - \delta_{\mathrm{fail}}$), the empirical risk $f$ satisfies Assumption~\texttt{(A1)} of \cite{charisopoulos2024superpolyak} on $B(\beta^*, \rho/2)$ with dimension-free sharpness constant $\mu = \alpha_{\min}/4$, Lipschitz constant $L = 2$, and condition number $L/\mu \le 8/\alpha_{\min}$. Consequently, initialized sufficiently close to $\beta^*$, \texttt{PolyakSGM} converges linearly at a dimension-independent rate, and since $f$ is piecewise linear (hence semialgebraic and semismooth) with $\beta^*$ isolated in $X^*$, \texttt{SuperPolyak} \cite[Theorem~2]{charisopoulos2024superpolyak} achieves local superlinear convergence.
+  In the noiseless setting ($\xi \equiv 0, S_{\mathrm{bad}} = \emptyset$) of \cref{thm:main-finite}, on $\mathcal{E}$ (probability $\ge 1 - \delta_{\mathrm{fail}}$), $f$ satisfies Assumption~\texttt{(A1)} of \cite{charisopoulos2024superpolyak} on $B(\beta^*, \rho/2)$ with dimension-free sharpness constant $\mu = \alpha_{\min}/4$, Lipschitz constant $L = 2$, and $L/\mu \le 8/\alpha_{\min}$. Moreover, $\beta^*$ is isolated in $X^*$ ($X^* \cap B(\beta^*, \rho) = \{\beta^*\}$), so by semialgebraicity of $f$ and \cite[Proposition~2.1 and Section~5.2.2 in arXiv:2201.04611]{charisopoulos2024superpolyak}, $(b)$-regularity~\texttt{(A2)} holds locally near $\beta^*$ for some data-dependent constants $(C_{(b)}, \eta_{(b)})$. Consequently, by \cite[Theorem~2.1 and Corollary~2.3 in arXiv:2201.04611]{charisopoulos2024superpolyak}, initialized sufficiently close to $\beta^*$ (within a radius depending on both $(\rho/2, \mu, L)$ and the existential constants $(C_{(b)}, \eta_{(b)})$) using the exact noiseless value $f^* = 0$, \texttt{PolyakSGM} converges locally linearly at a dimension-independent rate and \texttt{SuperPolyak} achieves local superlinear convergence.
 \end{corollary}
-
-The following converse confirms that the threshold $\alpha < 1/2$ in Theorem~\ref{thm:main-finite} cannot be improved under the oblivious-support, arbitrary-value corruption model~(iii).
 
 \begin{proposition}[Converse necessity of $\alpha < 1/2$ under oblivious support]
   \label{prop:converse}
-  Suppose $S_{\mathrm{bad}} \subseteq [m]$ is fixed independently of $A$ with $|S_{\mathrm{bad}}| = \alpha m$ and $\alpha > 1/2$. Fix any unit vector $\hat h \in \Sph^{d-1}$ and define the single fixed corruption vector $\xi_i := \ip{a_i}{\hat h}$ for $i \in S_{\mathrm{bad}}$ (and $\xi_i := 0$ for $i \notin S_{\mathrm{bad}}$). Consider the uniform translations $\tilde\beta(t) := (\beta_1^* + t\hat h, \dots, \beta_r^* + t\hat h)$ for $t \in (0, 1]$. Then with probability at least $1 - \exp\!\bigl(-\frac{(2\alpha - 1)^2}{2\pi} m\bigr)$,
+  Suppose $S_{\mathrm{bad}} \subseteq [m]$ is fixed independently of $A$ with $|S_{\mathrm{bad}}| = \alpha m$ and $\alpha > 1/2$. Fix any $\hat h \in \Sph^{d-1}$ and define the single corruption vector $\xi_i := \ip{a_i}{\hat h}$ for $i \in S_{\mathrm{bad}}$ and $\xi_i := 0$ for $i \notin S_{\mathrm{bad}}$ (depending on $A$, independent of $t$; Model~(iii)). For the uniform translations $\tilde\beta(t) := (\beta_1^* + t\hat h, \dots, \beta_r^* + t\hat h)$, $t \in (0, 1]$, with probability at least $1 - \exp\bigl(-\frac{(2\alpha - 1)^2}{2\pi} m\bigr)$,
   \[
-    f(\tilde\beta(t)) < f(\beta^*) \qquad \forall t \in (0, 1].
+    f(\tilde\beta(t)) < f(\beta^*) \qquad \forall t \in (0, 1],
   \]
-  Since $\Fnorm{\tilde\beta(t) - \beta^*} = t\sqrt{r} \to 0$ as $t \downarrow 0$, $\beta^*$ fails to be a local minimizer of $f$ with probability at least $1 - \exp\!\bigl(-\frac{(2\alpha - 1)^2}{2\pi} m\bigr)$.
+  so $\beta^*$ fails to be a local minimizer with at least that probability. (At $\alpha = 1/2$ with even $m$, symmetry gives failure probability $1/2$.)
 \end{proposition}
 \begin{proof}
-For every $i \in [m]$ and $t \in (0, 1]$, $\hat y(a_i; \tilde\beta(t)) = \hat y(a_i; \beta^*) + t\ip{a_i}{\hat h}$. Setting $s_i = 1$ for $i \notin S_{\mathrm{bad}}$ and $s_i = -1$ for $i \in S_{\mathrm{bad}}$, we have for $i \notin S_{\mathrm{bad}}$ that $|y_i - \hat y(a_i; \tilde\beta(t))| - |y_i - \hat y(a_i; \beta^*)| = t|\ip{a_i}{\hat h}|$, while for $i \in S_{\mathrm{bad}}$ that $|(1-t)\ip{a_i}{\hat h}| - |\ip{a_i}{\hat h}| = -t|\ip{a_i}{\hat h}|$. Thus
-\[
-  f(\tilde\beta(t)) - f(\beta^*) = t\cdot \frac{1}{m}\sum_{i=1}^m s_i |\ip{a_i}{\hat h}|
-  \qquad \forall t \in (0, 1].
-\]
-Since $Z_i := \ip{a_i}{\hat h} \stackrel{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0, 1)$, the mean of $T := \frac{1}{m}\sum_{i=1}^m s_i |Z_i|$ is $(1 - 2\alpha)\sqrt{2/\pi} < 0$. Applying the upper-tail bound of Lemma~\ref{lem:cone-conc}(a) below (with $C = \R^d$, $t_0 = (2\alpha - 1)\sqrt{2/\pi} > 0$) gives $\Prob(T \ge 0) \le \exp(-m t_0^2 / 4) = \exp\!\bigl(-\frac{(2\alpha - 1)^2}{2\pi} m\bigr)$.
+Since $\hat y(a_i; \tilde\beta(t)) = \hat y(a_i; \beta^*) + t\ip{a_i}{\hat h}$, setting $s_i = 1$ ($i \notin S_{\mathrm{bad}}$) and $s_i = -1$ ($i \in S_{\mathrm{bad}}$) gives $f(\tilde\beta(t)) - f(\beta^*) = t\cdot \frac{1}{m}\sum_{i=1}^m s_i|\ip{a_i}{\hat h}|$ for all $t \in (0, 1]$. With $Z_i := \ip{a_i}{\hat h} \stackrel{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0, 1)$, $T := \frac{1}{m}\sum_i s_i|Z_i|$ has mean $(1 - 2\alpha)\sqrt{2/\pi} < 0$, and \cref{lem:cone-conc}(a) ($C = \R^d, t_0 = (2\alpha - 1)\sqrt{2/\pi}$) gives $\Prob(T \ge 0) \le \exp(-m t_0^2/4) = \exp\bigl(-\frac{(2\alpha - 1)^2}{2\pi} m\bigr)$.
 \end{proof}
 
 \subsection{Three Probabilistic Ingredients}
 
-We establish Theorem~\ref{thm:main-finite} by intersecting three high-probability events (plus the almost-sure strict active-cone partition event $\mathcal{E}_{\mathrm{act}} := \{\forall i \in [m],\, a_i \in \bigcup_{j=1}^r C_j^*\}$). Throughout, we use the standard volumetric covering bound: for every $\varepsilon > 0$, $\Sph^{d-1}$ admits an $\varepsilon$-net $\mathcal{N}_\varepsilon$ of cardinality $|\mathcal{N}_\varepsilon| \le (1 + 2/\varepsilon)^d$ \cite[Corollary~4.2.13]{vershynin2018high}.
+We intersect three high-probability events with the a.s.\ event $\mathcal{E}_{\mathrm{act}} := \{\forall i \in [m],\, a_i \in \bigcup_{j=1}^r C_j^*\}$, using the volumetric covering bound $|\mathcal{N}_\varepsilon| \le (1 + 2/\varepsilon)^d$ for an $\varepsilon$-net of $\Sph^{d-1}$ \cite[Corollary~4.2.13]{vershynin2018high}.
 
 \begin{lemma}[Event 1: Elementary Gaussian operator-norm tail]
   \label{lem:op-norm}
-  Let $d \ge 1$ and $a_1, \dots, a_m \stackrel{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0, I_d)$ with $m \ge 32d$. Then
+  Assume $d \ge 1$, $m \ge 32d$, and $a_1, \dots, a_m \stackrel{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0, I_d)$. Then
   \[
     \Prob\Bigl(\exists w \in \R^d : \sum_{i=1}^m \ip{a_i}{w}^2 > 4m\norm{w}_2^2\Bigr)
     \le \exp\!\Bigl(-\frac{9}{32}\,m\Bigr).
   \]
 \end{lemma}
 \begin{proof}
-Let $\mathcal{N}$ be a $(1/6)$-net of $\Sph^{d-1}$ with $|\mathcal{N}| \le 13^d$. For any $u \in \Sph^{d-1}$, picking $u_0 \in \mathcal{N}$ with $\norm{u - u_0}_2 \le 1/6$ gives $\opnorm{A} \le \max_{u_0 \in \mathcal{N}} \norm{Au_0}_2 + \frac{1}{6}\opnorm{A}$, so $\opnorm{A} \le \frac{6}{5}\max_{u_0 \in \mathcal{N}} \norm{Au_0}_2$. Hence $\opnorm{A} > 2\sqrt{m}$ implies $\sum_{i=1}^m \ip{a_i}{u_0}^2 > \frac{25}{9}m$ for some $u_0 \in \mathcal{N}$. For each fixed $u_0 \in \Sph^{d-1}$, $\sum_{i=1}^m \ip{a_i}{u_0}^2 \sim \chi^2_m$ has MGF $(1 - 2\lambda)^{-m/2}$ for $\lambda \in (0, 1/2)$. Taking $\lambda = \frac{8}{25}$ gives $-\lambda \cdot \frac{25}{9}m = -\frac{8}{9}m$ and $(1 - 2\lambda)^{-1/2} = (9/25)^{-1/2} = \frac{5}{3}$, so Chernoff's bound yields
-\[
-  \Prob\Bigl(\chi^2_m > \frac{25}{9}m\Bigr)
-  \le e^{-\frac{8}{25}\cdot \frac{25}{9}m}\Bigl(1 - \frac{16}{25}\Bigr)^{-m/2}
-  = \Bigl(\frac{5}{3}e^{-8/9}\Bigr)^m.
-\]
-A union bound over $\mathcal{N}$ gives failure probability at most $13^d \bigl(\frac{5}{3}e^{-8/9}\bigr)^m$, which Lemma~\ref{lem:op-num} in Appendix~\ref{app:proofs} bounds above by $e^{-9m/32}$ whenever $m \ge 32d$.
+Let $\mathcal{N}$ be a $(1/6)$-net of $\Sph^{d-1}$ with $|\mathcal{N}| \le 13^d$. Since $\opnorm{A} \le \frac{6}{5}\max_{u_0 \in \mathcal{N}} \norm{Au_0}_2$, $\opnorm{A} > 2\sqrt{m}$ implies $\sum_{i=1}^m \ip{a_i}{u_0}^2 > \frac{25}{9}m$ for some $u_0 \in \mathcal{N}$. Taking $\lambda = 8/25$ in the $\chi^2_m$ MGF $(1 - 2\lambda)^{-m/2}$ yields $\Prob(\chi^2_m > \frac{25}{9}m) \le (\frac{5}{3}e^{-8/9})^m$. A union bound over $\mathcal{N}$ and \cref{lem:op-num} give failure probability at most $13^d(\frac{5}{3}e^{-8/9})^m \le e^{-9m/32}$ for $m \ge 32d$.
 \end{proof}
 
 \begin{lemma}[Event 2: Exact sub-Gaussian MGF and uniform signed cone concentration]
   \label{lem:cone-conc}
   Let $a_1, \dots, a_m \stackrel{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0, I_d)$ and let $s_1, \dots, s_m \in \{-1, +1\}$ be fixed signs with $\frac{1}{m}\sum_{i=1}^m s_i = 1 - 2\alpha$.
-  \begin{enumerate}[label=(\alph*),leftmargin=*,nosep]
-    \item \emph{(Pointwise sub-Gaussian MGF and tails.)} For any measurable set $C \subseteq \R^d$ and any $u \in \Sph^{d-1}$, let $Y_i := \ind_C(a_i)|\ip{a_i}{u}|$ and $\mu := \E[Y_1]$. Then $\E[e^{\lambda(Y_1 - \mu)}] \le e^{\lambda^2}$ for all $\lambda \in \R$, and for every $t > 0$,
+  \begin{enumerate}[label=(\alph*)]
+    \item For any measurable $C \subseteq \R^d$ and $u \in \Sph^{d-1}$, let $Y_i := \ind_C(a_i)|\ip{a_i}{u}|$ and $\mu := \E[Y_1]$. Then $\E[e^{\lambda(Y_1 - \mu)}] \le e^{\lambda^2}$ ($\forall \lambda \in \R$), and for every $t > 0$,
     \[
       \Prob\Bigl(\frac{1}{m}\sum_{i=1}^m s_i(Y_i - \mu) \le -t\Bigr) \le e^{-mt^2/4},
       \qquad
       \Prob\Bigl(\frac{1}{m}\sum_{i=1}^m s_i(Y_i - \mu) \ge t\Bigr) \le e^{-mt^2/4}.
     \]
-    \item \emph{(Uniform net bound.)} Let $\gamma = (1 - 2\alpha)\alpha_{\min} > 0$, define $T_j(u) := \frac{1}{m}\sum_{i=1}^m s_i \ind_{C_j^*}(a_i)|\ip{a_i}{u}|$, and let $\mathcal{N}_{\mathrm{cone}}$ be a $(\gamma/8)$-net of $\Sph^{d-1}$ of size $\le (1 + 16/\gamma)^d$. Then
+    \item Let $\gamma = (1 - 2\alpha)\alpha_{\min} > 0$, $T_j(u) := \frac{1}{m}\sum_{i=1}^m s_i \ind_{C_j^*}(a_i)|\ip{a_i}{u}|$, and let $\mathcal{N}_{\mathrm{cone}}$ be a $(\gamma/8)$-net of $\Sph^{d-1}$ with $|\mathcal{N}_{\mathrm{cone}}| \le (1 + 16/\gamma)^d$. Then
     \[
       \Prob\Bigl(\exists j \in [r],\, u_0 \in \mathcal{N}_{\mathrm{cone}} : T_j(u_0) < \frac{3\gamma}{4}\Bigr)
       \le r\Bigl(1 + \frac{16}{\gamma}\Bigr)^d \exp\!\Bigl(-\frac{m\gamma^2}{64}\Bigr).
     \]
-    Moreover, on the intersection of $\opnorm{A} \le 2\sqrt{m}$ and $\{T_j(u_0) \ge \frac{3\gamma}{4}\ \forall j, u_0 \in \mathcal{N}_{\mathrm{cone}}\}$, we have $T_j(u) \ge \gamma/2$ for all $j \in [r]$ and all $u \in \Sph^{d-1}$.
+    Moreover, on $\{\opnorm{A} \le 2\sqrt{m}\} \cap \{T_j(u_0) \ge \frac{3\gamma}{4}\ \forall j, u_0 \in \mathcal{N}_{\mathrm{cone}}\}$, $T_j(u) \ge \gamma/2$ for all $j \in [r]$ and $u \in \Sph^{d-1}$.
   \end{enumerate}
 \end{lemma}
 \begin{proof}
-For (a), let $(Y', Z')$ be an independent copy of $(Y_1, Z)$ where $Z = \ip{a_1}{u} \sim \mathcal{N}(0,1)$. By Jensen's inequality and symmetry of $Y_1 - Y'$,
-\[
-  \E\bigl[e^{\lambda(Y_1 - \mu)}\bigr]
-  \le \E\bigl[e^{\lambda(Y_1 - Y')}\bigr]
-  = \E\bigl[\cosh(\lambda(Y_1 - Y'))\bigr].
-\]
-Because $0 \le Y_1 \le |Z|$ and $0 \le Y' \le |Z'|$, we have $|Y_1 - Y'| \le \max(|Z|, |Z'|)$, hence $\cosh(\lambda(Y_1 - Y')) \le \max(\cosh(\lambda Z), \cosh(\lambda Z')) \le \cosh(\lambda Z) + \cosh(\lambda Z') - 1$ (since $\cosh \ge 1$). Using $\E[\cosh(\lambda Z)] = e^{\lambda^2/2}$ and the elementary inequality $2e^u - 1 \le e^{2u}$ (equivalently $(e^u - 1)^2 \ge 0$) at $u = \lambda^2/2$, we get $\E[e^{\lambda(Y_1 - \mu)}] \le 2e^{\lambda^2/2} - 1 \le e^{\lambda^2}$. By independence and $s_i^2 = 1$, for any $\lambda > 0$,
-\[
-  \Prob\Bigl(\frac{1}{m}\sum_{i=1}^m s_i(Y_i - \mu) \le -t\Bigr)
-  \le e^{-\lambda m t}\prod_{i=1}^m \E\bigl[e^{-\lambda s_i(Y_i - \mu)}\bigr]
-  \le e^{-\lambda m t + m\lambda^2},
-\]
-and minimizing at $\lambda = t/2$ gives $e^{-mt^2/4}$; replacing $s_i$ by $-s_i$ yields the upper tail.
-
-For (b), each $j \in [r]$ and $u_0 \in \mathcal{N}_{\mathrm{cone}}$ satisfy $\E[T_j(u_0)] = (1 - 2\alpha)\E[\ind_{C_j^*}(a)|\ip{a}{u_0}|] \ge (1 - 2\alpha)\alpha_{\min} = \gamma$. Taking $t = \gamma/4$ in~(a) and applying a union bound over $j \in [r]$ and $u_0 \in \mathcal{N}_{\mathrm{cone}}$ yields the stated tail bound. Finally, for any $u \in \Sph^{d-1}$, choosing $u_0 \in \mathcal{N}_{\mathrm{cone}}$ with $\norm{u - u_0}_2 \le \gamma/8$ and using Cauchy--Schwarz on $\opnorm{A} \le 2\sqrt{m}$,
-\[
-  |T_j(u) - T_j(u_0)|
-  \le \frac{1}{m}\sum_{i=1}^m |\ip{a_i}{u - u_0}|
-  \le \frac{1}{\sqrt{m}}\norm{A(u - u_0)}_2
-  \le 2\norm{u - u_0}_2 \le \frac{\gamma}{4},
-\]
-so $T_j(u) \ge \frac{3\gamma}{4} - \frac{\gamma}{4} = \frac{\gamma}{2}$.
+For~(a), letting $(Y', Z')$ be an independent copy of $(Y_1, Z)$ with $Z = \ip{a_1}{u} \sim \mathcal{N}(0, 1)$, Jensen's inequality and $|Y_1 - Y'| \le \max(|Z|, |Z'|)$ give $\E[e^{\lambda(Y_1 - \mu)}] \le \E[\cosh(\lambda(Y_1 - Y'))] \le \E[\cosh(\lambda Z) + \cosh(\lambda Z') - 1] = 2e^{\lambda^2/2} - 1 \le e^{\lambda^2}$. Optimizing Chernoff at $\lambda = t/2$ gives both tails. For~(b), $\E[T_j(u_0)] \ge \gamma$, so applying~(a) at $t = \gamma/4$ and union bounding yields the tail. On $\opnorm{A} \le 2\sqrt{m}$, picking $u_0 \in \mathcal{N}_{\mathrm{cone}}$ with $\norm{u - u_0}_2 \le \gamma/8$ gives $|T_j(u) - T_j(u_0)| \le m^{-1/2}\norm{A(u - u_0)}_2 \le 2\norm{u - u_0}_2 \le \gamma/4$.
 \end{proof}
 
-To control the pairwise sign-flip terms in Lemma~\ref{lem:flip-decomp} uniformly across all $\delta_{jk}$ without losing a $\kappa$ factor or a $\log(m/d)$ factor, we dominate the discontinuous flip indicator by a scale-free continuous piecewise-linear surrogate. For $\eta > 0$, define $\varphi_\eta : \R \times \R \to [0, \infty)$ by
-\begin{equation}
-  \label{eq:phi-eta}
-  \varphi_\eta(z_1, z_2) := \max\Bigl(0,\; 2|z_2| - \frac{|z_1|}{\eta}\Bigr).
-\end{equation}
+To bound pairwise flips uniformly without incurring $\kappa$ or $\log(m/d)$ factors, define the scale-free continuous surrogate $\varphi_\eta(z_1, z_2) := \max(0, 2|z_2| - |z_1|/\eta)$ for $\eta > 0$.
 
 \begin{lemma}[Event 3: Scale-free smooth domination and Bernstein flip concentration]
   \label{lem:flip-conc}
   Let $\eta \in (0, 1/4]$ and $a_1, \dots, a_m \stackrel{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0, I_d)$.
-  \begin{enumerate}[label=(\alph*),leftmargin=*,nosep]
-    \item \emph{(Scale-free pointwise domination.)} For any $v \in \R^d \setminus \{0\}$, any $\delta \in \R^d$ with $\norm{\delta}_2 \le \eta\norm{v}_2$, and every $a \in \R^d$, letting $\hat v := v/\norm{v}_2$ and $\hat u := \delta/\norm{\delta}_2$ (arbitrary unit vector if $\delta = 0$),
+  \begin{enumerate}[label=(\alph*)]
+    \item For any $v \in \R^d \setminus \{0\}$, $\delta \in \R^d$ with $\norm{\delta}_2 \le \eta\norm{v}_2$, and $a \in \R^d$, letting $\hat v := v/\norm{v}_2$ and $\hat u := \delta/\norm{\delta}_2$ (arbitrary unit vector if $\delta = 0$),
     \begin{equation}
       \label{eq:phi-dom}
       |\ip{a}{v + \delta}|\,\ind\bigl\{\ip{a}{v}\ip{a}{v + \delta} < 0\bigr\}
       \le \norm{\delta}_2\,\varphi_\eta\bigl(\ip{a}{\hat v},\, \ip{a}{\hat u}\bigr).
     \end{equation}
-    \item \emph{(Exact moments and Bernstein concentration.)} For any fixed unit vectors $\hat v, \hat u \in \Sph^{d-1}$, let $W_i := \varphi_\eta(\ip{a_i}{\hat v}, \ip{a_i}{\hat u})$. Then $\E[W_1] \le \frac{4\sqrt{2\pi}}{3}\eta$, and for every integer $p \ge 2$,
+    \item For fixed $\hat v, \hat u \in \Sph^{d-1}$, let $W_i := \varphi_\eta(\ip{a_i}{\hat v}, \ip{a_i}{\hat u})$. Then $\E[W_1] \le \frac{4\sqrt{2\pi}}{3}\eta$, and for every integer $p \ge 2$,
     \[
       \E[W_1^p] \le \frac{2\arcsin(2\eta)}{\pi}\cdot 2^{3p/2}\Gamma\Bigl(1 + \frac{p}{2}\Bigr)
       \le \frac{1}{2}\,p!\,v_0\,B^{p - 2},
+      \qquad v_0 := \frac{32}{3}\eta,\; B := 2.
     \]
-    with $v_0 := \frac{32}{3}\eta$ and $B := 2$. Consequently, $\E[e^{\lambda(W_1 - \E[W_1])}] \le \exp\bigl(\frac{v_0\lambda^2}{2(1 - B\lambda)}\bigr)$ for $0 \le \lambda < 1/2$, and
+    Hence $\E[e^{\lambda(W_1 - \E[W_1])}] \le \exp\bigl(\frac{v_0\lambda^2}{2(1 - B\lambda)}\bigr)$ for $0 \le \lambda < 1/2$, and
     \[
       \Prob\Bigl(\frac{1}{m}\sum_{i=1}^m W_i > \Bigl(\frac{4\sqrt{2\pi}}{3} + 2\Bigr)\eta\Bigr)
       \le \exp\!\Bigl(-\frac{3}{22}\,m\eta\Bigr).
     \]
-    \item \emph{(Uniform net bound.)} Let $\mathcal{N}_{\mathrm{flip}}$ be an $(\eta/4)$-net of $\Sph^{d-1}$ of size $\le (9/\eta)^d$ (since $1 + 8/\eta \le 9/\eta$ for $\eta \le 1$). Then
+    \item Let $\mathcal{N}_{\mathrm{flip}}$ be an $(\eta/4)$-net of $\Sph^{d-1}$ of size $\le (9/\eta)^d$ and $\hat v_{jk} := v_{jk}/\norm{v_{jk}}_2$. Then
     \begin{align*}
-      \Prob\Bigl(\exists\, 1 \le j < k \le r,\; u_0 \in \mathcal{N}_{\mathrm{flip}} :
+      \Prob\Bigl(\exists\, j < k,\; u_0 \in \mathcal{N}_{\mathrm{flip}} :
         \frac{1}{m}\sum_{i=1}^m \varphi_\eta(\ip{a_i}{\hat v_{jk}}, \ip{a_i}{u_0})
         &> \Bigl(\frac{4\sqrt{2\pi}}{3} + 2\Bigr)\eta\Bigr) \\
-      &\le \frac{r(r-1)}{2}\Bigl(\frac{9}{\eta}\Bigr)^d \exp\!\Bigl(-\frac{3}{22}\,m\eta\Bigr),
+      &\le \frac{r(r-1)}{2}\Bigl(\frac{9}{\eta}\Bigr)^d \exp\!\Bigl(-\frac{3}{22}\,m\eta\Bigr).
     \end{align*}
-    where $\hat v_{jk} := v_{jk}/\norm{v_{jk}}_2$. Moreover, on the intersection of $\opnorm{A} \le 2\sqrt{m}$ and the complement of this bad event, for all $1 \le j < k \le r$ and all $u \in \Sph^{d-1}$,
+    On the intersection of $\opnorm{A} \le 2\sqrt{m}$ and the complement of this event,
     \[
-      \frac{1}{m}\sum_{i=1}^m \varphi_\eta(\ip{a_i}{\hat v_{jk}}, \ip{a_i}{u}) \le 6.35\,\eta.
+      \frac{1}{m}\sum_{i=1}^m \varphi_\eta(\ip{a_i}{\hat v_{jk}}, \ip{a_i}{u}) \le 6.35\,\eta
+      \qquad \forall\, 1 \le j < k \le r,\; u \in \Sph^{d-1}.
     \]
   \end{enumerate}
 \end{lemma}
 \begin{proof}
-For (a), if $\delta = 0$ or $\ip{a}{v}\ip{a}{v+\delta} \ge 0$, the left-hand side of~\eqref{eq:phi-dom} is $0 \le \text{RHS}$. Otherwise $\ip{a}{v}$ and $\ip{a}{v+\delta}$ have strictly opposite signs, so $\norm{\delta}_2|\ip{a}{\hat u}| = |\ip{a}{v+\delta} - \ip{a}{v}| = |\ip{a}{v+\delta}| + |\ip{a}{v}|$, giving both $|\ip{a}{v+\delta}| < \norm{\delta}_2|\ip{a}{\hat u}|$ and $\norm{v}_2|\ip{a}{\hat v}| = |\ip{a}{v}| < \norm{\delta}_2|\ip{a}{\hat u}| \le \eta\norm{v}_2|\ip{a}{\hat u}|$. Hence $|\ip{a}{\hat v}|/\eta < |\ip{a}{\hat u}|$, which yields $\varphi_\eta(\ip{a}{\hat v}, \ip{a}{\hat u}) \ge 2|\ip{a}{\hat u}| - |\ip{a}{\hat u}| = |\ip{a}{\hat u}|$ and therefore $|\ip{a}{v+\delta}| \le \norm{\delta}_2\varphi_\eta(\ip{a}{\hat v}, \ip{a}{\hat u})$.
-
-For (b), note that $W_1 \le 2|\ip{a_1}{\hat u}|\,\ind_{\{|\ip{a_1}{\hat v}| < 2\eta|\ip{a_1}{\hat u}|\}}$. If $\hat u = \pm \hat v$, then $|\ip{a_1}{\hat v}| = |\ip{a_1}{\hat u}|$ and $2\eta \le 1/2 < 1$ forces $W_1 = 0$ identically. Otherwise project $a_1 \sim \mathcal{N}(0, I_d)$ onto $\operatorname{span}(\hat v, \hat u)$ in 2D polar coordinates $(r\cos\theta, r\sin\theta)$ with $\ip{a_1}{\hat v} = r\cos\theta$ and $|\ip{a_1}{\hat u}| \le r$. Then $\{|\ip{a_1}{\hat v}| < 2\eta|\ip{a_1}{\hat u}|\} \subseteq \{|\cos\theta| < 2\eta\}$, which has angular probability $q := \Prob(|\cos\theta| < 2\eta) = \frac{2\arcsin(2\eta)}{\pi}$. By convexity of $\arcsin$ on $[0, 1/2]$, $\arcsin(2\eta) \le \frac{\pi}{3}(2\eta)$, so $q \le \frac{4}{3}\eta$. Using independence of $r$ ($\E[r^p] = 2^{p/2}\Gamma(1 + p/2)$) and $\theta$:
-\begin{itemize}[leftmargin=*,nosep]
-  \item For $p = 1$: $\E[W_1] \le 2q\,\E[r] = 2q\sqrt{\pi/2} \le \frac{4\sqrt{2\pi}}{3}\eta$.
-  \item For every $p \ge 2$: $\E[W_1^p] \le q\cdot 2^p\cdot 2^{p/2}\Gamma(1 + p/2) = q\cdot 2^{3p/2}\Gamma(1 + p/2)$. By the induction inequality $2^{3p/2}\Gamma(1 + p/2) \le p!\,2^p$ (Lemma~\ref{lem:moment-ind} in Appendix~\ref{app:proofs}),
-  \[
-    \E[W_1^p] \le q\cdot p!\,2^p = \frac{1}{2}\,p!\,(8q)\,2^{p-2} \le \frac{1}{2}\,p!\,v_0\,B^{p-2},
-  \]
-  with $v_0 = \frac{32}{3}\eta$ and $B = 2$.
-\end{itemize}
-Since $W_1 \ge 0$, for any $0 \le \lambda < 1/B = 1/2$, monotone convergence and $1 + x \le e^x$ yield
-\begin{align*}
-  \E\bigl[e^{\lambda(W_1 - \E[W_1])}\bigr]
-  &= e^{-\lambda\E[W_1]}\Bigl(1 + \lambda\E[W_1] + \sum_{p=2}^\infty \frac{\lambda^p\E[W_1^p]}{p!}\Bigr) \\
-  &\le e^{-\lambda\E[W_1]}\Bigl(1 + \lambda\E[W_1] + \frac{v_0\lambda^2}{2(1 - B\lambda)}\Bigr)
-  \le \exp\!\Bigl(\frac{v_0\lambda^2}{2(1 - B\lambda)}\Bigr).
-\end{align*}
-By Bernstein's Chernoff optimization $\lambda = \frac{t}{v_0 + Bt}$ at $t = 2\eta$,
+For~(a), if $\ip{a}{v}\ip{a}{v+\delta} < 0$, then $\norm{\delta}_2|\ip{a}{\hat u}| = |\ip{a}{v+\delta}| + |\ip{a}{v}|$, whence $|\ip{a}{v+\delta}| < \norm{\delta}_2|\ip{a}{\hat u}|$ and $|\ip{a}{\hat v}|/\eta < |\ip{a}{\hat u}|$, so $\varphi_\eta(\ip{a}{\hat v}, \ip{a}{\hat u}) \ge |\ip{a}{\hat u}|$. For~(b), observe that
 \[
-  \Prob\Bigl(\frac{1}{m}\sum_{i=1}^m (W_i - \E[W_1]) > 2\eta\Bigr)
-  \le \exp\!\Bigl(-\frac{m t^2}{2(v_0 + Bt)}\Bigr)
-  = \exp\!\Bigl(-\frac{4m\eta^2}{2(\frac{32}{3}\eta + 4\eta)}\Bigr)
-  = \exp\!\Bigl(-\frac{3}{22}\,m\eta\Bigr).
+  W_1 \le 2|\ip{a_1}{\hat u}|\,\ind_{\{|\ip{a_1}{\hat v}| < 2\eta|\ip{a_1}{\hat u}|\}}.
 \]
-
-For (c), a union bound over all $\binom{r}{2} = \frac{r(r-1)}{2}$ ordered pairs $j < k$ and $u_0 \in \mathcal{N}_{\mathrm{flip}}$ yields the tail bound. Since $z_2 \mapsto \varphi_\eta(z_1, z_2)$ is $2$-Lipschitz for every $z_1$, on $\opnorm{A} \le 2\sqrt{m}$, for any $u \in \Sph^{d-1}$ picking $u_0 \in \mathcal{N}_{\mathrm{flip}}$ with $\norm{u - u_0}_2 \le \eta/4$ gives
-\begin{align*}
-  \frac{1}{m}\sum_{i=1}^m \bigl|\varphi_\eta(\ip{a_i}{\hat v_{jk}}, \ip{a_i}{u}) - \varphi_\eta(\ip{a_i}{\hat v_{jk}}, \ip{a_i}{u_0})\bigr|
-  &\le \frac{2}{m}\sum_{i=1}^m |\ip{a_i}{u - u_0}| \\
-  &\le \frac{2}{\sqrt{m}}\norm{A(u - u_0)}_2 \le 4\cdot \frac{\eta}{4} = \eta,
-\end{align*}
-and $\frac{4\sqrt{2\pi}}{3} + 2 + 1 = \frac{4\sqrt{2\pi}}{3} + 3 \approx 6.3422 \le 6.35$.
+If $\hat u = \pm \hat v$ (covering $d = 1$), $W_1 \equiv 0$; otherwise in 2D polar coordinates on $\operatorname{span}(\hat v, \hat u)$, $\{|\cos\theta| < 2\eta\}$ has probability $q := \frac{2\arcsin(2\eta)}{\pi} \le \frac{4}{3}\eta$. Independence of $r$ and $\theta$ gives $\E[W_1] \le 2q\sqrt{\pi/2} \le \frac{4\sqrt{2\pi}}{3}\eta$ and, via \cref{lem:moment-ind},
+\[
+  \E[W_1^p] \le q\,2^{3p/2}\Gamma(1+p/2) \le q\,p!\,2^p \le \frac{1}{2}\,p!\,v_0\,B^{p-2} \qquad (p \ge 2).
+\]
+Summing the MGF series and optimizing Bernstein at $\lambda = \frac{t}{v_0 + Bt} = \frac{3}{22} < \frac{1}{2}$ ($t = 2\eta$) gives $\exp(-\frac{3}{22}m\eta)$. For~(c), union bounding and $2$-Lipschitzness of $z_2 \mapsto \varphi_\eta(z_1, z_2)$ on $\opnorm{A} \le 2\sqrt{m}$ incur error at most $4(\eta/4) = \eta$, and $\frac{4\sqrt{2\pi}}{3} + 3 \approx 6.3422 \le 6.35$.
 \end{proof}
 
-\subsection{Proof of Theorem~\ref{thm:main-finite}}
+\subsection{Proof of \texorpdfstring{\cref{thm:main-finite}}{Theorem 5.1}}
 
-\begin{proof}[Proof of Theorem~\ref{thm:main-finite}]
-Because $d \ge 1$ and $\alpha_{\min} \le \E[|\ip{a}{u}|] = \sqrt{2/\pi} < 1$, we have $\gamma = (1 - 2\alpha)\alpha_{\min} < 1$, $\eta = \frac{\gamma}{26(r-1)} \le \frac{1}{26} < \frac{1}{4}$, and $m \ge \frac{64}{\gamma^2}d\log(1 + \frac{16}{\gamma}) > 64d > 32d$. Let $\mathcal{E}$ be the intersection of the four events: $\mathcal{E}_{\mathrm{act}}$ (probability $1$), Event~1 of Lemma~\ref{lem:op-norm}, Event~2 of Lemma~\ref{lem:cone-conc}(b), and Event~3 of Lemma~\ref{lem:flip-conc}(c). Under~\eqref{eq:sample-complexity}, each of the three failure probabilities in Lemmas~\ref{lem:op-norm}--\ref{lem:flip-conc} is at most $\delta_{\mathrm{fail}}/3$ (using $\frac{r(r-1)}{2} \le \frac{r^2}{2}$), so $\Prob(\mathcal{E}) \ge 1 - \delta_{\mathrm{fail}}$.
+\begin{proof}[Proof of \cref{thm:main-finite}]
+By \cref{rem:main-finite}, $\gamma < 1$, $\eta \le \frac{1}{26} < \frac{1}{4}$, and $m \ge 32d$. Let $\mathcal{E}$ be the intersection of the Borel events $\mathcal{E}_{\mathrm{act}}$ (prob.~$1$), Event~1 (\cref{lem:op-norm}), Event~2 (\cref{lem:cone-conc}(b)), and Event~3 (\cref{lem:flip-conc}(c)). Under~\eqref{eq:sample-complexity}, each failure probability is at most $\delta_{\mathrm{fail}}/3$ ($\frac{r(r-1)}{2} \le \frac{r^2}{2}$), so $\Prob(\mathcal{E}) \ge 1 - \delta_{\mathrm{fail}}$. Fix $A \in \mathcal{E}$ and any $\xi \in \R^m$ supported on $S_{\mathrm{bad}}$, and set $s_i = 1$ ($i \notin S_{\mathrm{bad}}$), $s_i = -1$ ($i \in S_{\mathrm{bad}}$).
 
-Fix any realization $A \in \mathcal{E}$ and \emph{any} corruption vector $\xi \in \R^m$ vanishing outside $S_{\mathrm{bad}}$. Set $s_i = 1$ for $i \notin S_{\mathrm{bad}}$ and $s_i = -1$ for $i \in S_{\mathrm{bad}}$.
-
-\medskip
-\noindent\textbf{Part~(1): Macroscopic sharp growth.}
-Fix $\Delta \in \R^{r\times d}$ with $\Fnorm{\Delta} \le \rho = \frac{\eta}{\sqrt{2}}\Delta_{\min}$, and set $\beta = \beta^* + \Delta$. For every sample $i \in [m]$:
-\begin{itemize}[leftmargin=*,nosep]
-  \item If $i \notin S_{\mathrm{bad}}$ ($s_i = 1, \xi_i = 0$), $|y_i - \hat y(a_i; \beta)| - |y_i - \hat y(a_i; \beta^*)| = |\hat y(a_i; \beta) - \hat y(a_i; \beta^*)|$.
-  \item If $i \in S_{\mathrm{bad}}$ ($s_i = -1$, arbitrary $\xi_i \in \R$), by the reverse triangle inequality, $|y_i - \hat y(a_i; \beta)| - |y_i - \hat y(a_i; \beta^*)| \ge -|\hat y(a_i; \beta) - \hat y(a_i; \beta^*)|$.
-\end{itemize}
-In both cases, applying Lemma~\ref{lem:flip-decomp} (since $a_i \in \bigcup_j C_j^*$ on $\mathcal{E}_{\mathrm{act}}$) gives
+\emph{Part~(1).} For $\Fnorm{\Delta} \le \rho = \frac{\eta}{\sqrt{2}}\Delta_{\min}$ and $\beta = \beta^* + \Delta$, $|y_i - \hat y(a_i; \beta)| - |y_i - \hat y(a_i; \beta^*)|$ equals $|\hat y(a_i; \beta) - \hat y(a_i; \beta^*)|$ for $i \notin S_{\mathrm{bad}}$ and is at least $-|\hat y(a_i; \beta) - \hat y(a_i; \beta^*)|$ for $i \in S_{\mathrm{bad}}$ by the reverse triangle inequality. Applying \cref{lem:flip-decomp} and averaging gives
 \begin{align*}
-  |y_i - \hat y(a_i; \beta)| - |y_i - \hat y(a_i; \beta^*)|
-  &\ge \sum_{j=1}^r s_i \ind_{C_j^*}(a_i)\,|\ip{a_i}{\Delta_j}| \\
-  &\quad - \sum_{1\le j < k \le r} |\ip{a_i}{v_{jk} + \delta_{jk}}|\,\ind\bigl\{\ip{a_i}{v_{jk}}\ip{a_i}{v_{jk} + \delta_{jk}} < 0\bigr\}.
+  f(\beta) - f(\beta^*)
+  &\ge \sum_{j=1}^r \frac{1}{m}\sum_{i=1}^m s_i \ind_{C_j^*}(a_i)\,|\ip{a_i}{\Delta_j}| \\
+  &\quad - \sum_{1\le j < k \le r} \frac{1}{m}\sum_{i=1}^m |\ip{a_i}{v_{jk} + \delta_{jk}}|\,\ind\bigl\{\ip{a_i}{v_{jk}}\ip{a_i}{v_{jk} + \delta_{jk}} < 0\bigr\}.
 \end{align*}
-Averaging over $i = 1, \dots, m$:
-\begin{itemize}[leftmargin=*,nosep]
-  \item By Lemma~\ref{lem:cone-conc}(b) and positive homogeneity, $\frac{1}{m}\sum_{i=1}^m s_i\ind_{C_j^*}(a_i)|\ip{a_i}{\Delta_j}| \ge \frac{\gamma}{2}\norm{\Delta_j}_2$ for every $j \in [r]$, summing to $\frac{\gamma}{2}\Lonenorm{\Delta}$.
-  \item For each $1 \le j < k \le r$, $\norm{\delta_{jk}}_2 \le \sqrt{2}\Fnorm{\Delta} \le \eta\Delta_{\min} \le \eta\norm{v_{jk}}_2$. Thus Lemma~\ref{lem:flip-conc}(a) and~(c) give
-  \[
-    \frac{1}{m}\sum_{i=1}^m |\ip{a_i}{v_{jk} + \delta_{jk}}|\,\ind\bigl\{\ip{a_i}{v_{jk}}\ip{a_i}{v_{jk} + \delta_{jk}} < 0\bigr\}
-    \le 6.35\,\eta\,\norm{\Delta_j - \Delta_k}_2.
-  \]
-  Summing over $1 \le j < k \le r$ and using $\sum_{1 \le j < k \le r} \norm{\Delta_j - \Delta_k}_2 \le \sum_{1 \le j < k \le r} (\norm{\Delta_j}_2 + \norm{\Delta_k}_2) = (r - 1)\Lonenorm{\Delta}$, the total flip penalty is at most $6.35\,\eta\,(r - 1)\Lonenorm{\Delta} = \frac{6.35}{26}\gamma\Lonenorm{\Delta} < \frac{\gamma}{4}\Lonenorm{\Delta}$.
-\end{itemize}
-Subtracting yields $f(\beta^* + \Delta) - f(\beta^*) \ge \frac{\gamma}{4}\Lonenorm{\Delta} \ge \frac{\gamma}{4}\Fnorm{\Delta}$.
+By \cref{lem:cone-conc}(b), the first sum is at least $\frac{\gamma}{2}\Lonenorm{\Delta}$. Since $\norm{\delta_{jk}}_2 \le \sqrt{2}\Fnorm{\Delta} \le \eta\Delta_{\min} \le \eta\norm{v_{jk}}_2$, \cref{lem:flip-conc}(a),(c) and $\sum_{j<k}\norm{\Delta_j - \Delta_k}_2 \le (r - 1)\Lonenorm{\Delta}$ bound the flip sum by $6.35\,\eta(r - 1)\Lonenorm{\Delta} = \frac{6.35}{26}\gamma\Lonenorm{\Delta} < \frac{\gamma}{4}\Lonenorm{\Delta}$. Subtracting yields~\eqref{eq:thm4-growth}.
 
-\medskip
-\noindent\textbf{Part~(2): Global $2$-Lipschitz continuity.}
-For any $\beta, \beta' \in \R^{r\times d}$ and $i \in [m]$, $\bigl||y_i - \hat y(a_i; \beta)| - |y_i - \hat y(a_i; \beta')|\bigr| \le |\hat y(a_i; \beta) - \hat y(a_i; \beta')| \le \max_{j \in [r]} |\ip{a_i}{\beta_j - \beta'_j}|$. Hence
-\[
-  \bigl|f(\beta) - f(\beta')\bigr|^2
-  \le \frac{1}{m}\sum_{i=1}^m \max_{j \in [r]} \ip{a_i}{\beta_j - \beta'_j}^2
-  \le \frac{1}{m}\sum_{j=1}^r \sum_{i=1}^m \ip{a_i}{\beta_j - \beta'_j}^2
-  \le 4\sum_{j=1}^r \norm{\beta_j - \beta'_j}_2^2
-  = 4\Fnorm{\beta - \beta'}^2,
-\]
-using $\opnorm{A} \le 2\sqrt{m}$. Taking square roots gives $|f(\beta) - f(\beta')| \le 2\Fnorm{\beta - \beta'}$.
+\emph{Part~(2).} Since $\bigl||y_i - \hat y(a_i; \beta)| - |y_i - \hat y(a_i; \beta')|\bigr| \le \max_{j \in [r]} |\ip{a_i}{\beta_j - \beta'_j}|$, Cauchy--Schwarz and $\opnorm{A} \le 2\sqrt{m}$ give $|f(\beta) - f(\beta')|^2 \le \frac{1}{m}\sum_{j=1}^r \sum_{i=1}^m \ip{a_i}{\beta_j - \beta'_j}^2 \le 4\Fnorm{\beta - \beta'}^2$.
 
-\medskip
-\noindent\textbf{Part~(3): Noiseless half-radius distance identity.}
-When $\xi \equiv 0$, $f(\beta^*) = 0 = f^*$, and Part~(1) shows $f(z) > 0$ for every $z \in B(\beta^*, \rho)\setminus\{\beta^*\}$. Thus every global minimizer $z \in X^*$ ($f(z) = 0$) satisfies either $z = \beta^*$ or $\Fnorm{z - \beta^*} > \rho$. For any $\beta \in B(\beta^*, \rho/2)$ and $z \in X^* \setminus \{\beta^*\}$, the triangle inequality gives $\Fnorm{\beta - z} \ge \Fnorm{z - \beta^*} - \Fnorm{\beta - \beta^*} > \rho - \rho/2 = \rho/2 \ge \Fnorm{\beta - \beta^*}$. Hence $\dist(\beta, X^*) = \Fnorm{\beta - \beta^*}$.
+\emph{Part~(3).} When $\xi \equiv 0$, $f(\beta^*) = 0 = f^*$ and Part~(1) gives $X^* \cap B(\beta^*, \rho) = \{\beta^*\}$. Hence every $z \in X^* \setminus \{\beta^*\}$ has $\Fnorm{z - \beta^*} > \rho$, so for $\beta \in B(\beta^*, \rho/2)$ the triangle inequality gives $\Fnorm{\beta - z} \ge \Fnorm{z - \beta^*} - \Fnorm{\beta - \beta^*} > \rho/2 \ge \Fnorm{\beta - \beta^*}$, proving $\dist(\beta, X^*) = \Fnorm{\beta - \beta^*}$.
 \end{proof}
 
 % ============================================================================
@@ -873,21 +628,16 @@ When $\xi \equiv 0$, $f(\beta^*) = 0 = f^*$, and Part~(1) shows $f(z) > 0$ for e
 \label{sec:experiments}
 % ============================================================================
 
-To complement our theoretical analysis and test the sharpness of our scaling laws, we run deterministic, reproducible numerical experiments (\texttt{experiments/paper\_experiments.py} and \texttt{experiments/adversarial\_tests.py}, archived with fixed random seeds in \texttt{experiments/results/}). Throughout this section we explicitly distinguish \emph{verified theoretical guarantees} from \emph{empirical phenomena} observed at finite sample sizes.
+We complement our theory with deterministic numerical experiments (reproducible scripts, exact seeds, and expanded tables are detailed in Supplement~SM2).
 
-\subsection{Dimension Invariance, $\Delta_{\min}$-Scaling, and $\kappa$-Independence}
-
-\paragraph{Experiment A (Dimension and oversampling sweep).}
-We set $r = 3$ with ground-truth rows forming a regular simplex of pairwise separation $\Delta_{\min} = 1$ embedded in $\R^d$ for $d \in \{5, 10, 20, 40\}$ and oversampling ratios $m/d \in \{8, 16, 32, 64\}$. For each $(d, m/d)$ pair across $10$ independent Gaussian draws, we estimate the worst-case empirical sharpness ratio $\hat\mu := \min (f(\beta^* + \Delta) - f(\beta^*))/\Fnorm{\Delta}$ over isotropic, single-block, and uniform-translation perturbations within the fixed macroscopic ball $\Fnorm{\Delta} \le 0.2\Delta_{\min}$. Table~\ref{tab:dim-kappa} (left) shows that $\hat\mu$ does \emph{not} decay with $d$: at $m/d = 32$, $\hat\mu$ stabilizes around $0.16$--$0.23$ across an eightfold increase in dimension, confirming the dimension-free prediction of Theorem~\ref{thm:main-finite} (and illustrating empirically that far smaller oversampling ratios than our conservative explicit constant suffice in practice).
-
-\paragraph{Experiment C ($\Delta_{\min}$-invariance and $\kappa$-independence).}
-To test Theorem~\ref{thm:main-finite}'s independence from $\kappa = \Delta_{\max}/\Delta_{\min}$ directly, we construct $r = 3$ parameters in $\R^{10}$ ($m = 600$) with $\beta_1^* = (-\varepsilon/2, 0, \dots, 0)$, $\beta_2^* = (\varepsilon/2, 0, \dots, 0)$, and $\beta_3^* = (0, 1, 0, \dots, 0)$ for $\varepsilon \in \{1, 0.2, 0.05, 0.01\}$. As $\varepsilon \downarrow 0$, $\kappa = \Delta_{\max}/\Delta_{\min}$ grows from $1.12$ to $100.00$, while the three active-cone probabilities remain balanced ($\pi_{\min} \ge 0.250$). Table~\ref{tab:dim-kappa} (right) confirms that the empirical sharpness modulus on $B(\beta^*, 0.15\Delta_{\min})$ stays nearly constant ($0.14$--$0.20$) across a $90\times$ increase in $\kappa$, consistent with Theorem~\ref{thm:main-finite} and contrasting with $\ell_2$ bounds that degrade linearly in $\kappa$ \cite{ghosh2022maxaffine}. Separately, for $r = 2$ ($d = 10, m = 2000$) across $\Delta_{\min} \in \{0.01, 0.05, 0.2, 1.0, 5.0\}$ with large global perturbations of radius up to $2.0$, the empirical global ratio $f(\beta)/\dist(\beta, X^*)$ stays in $[0.383, 0.464]$, well above Theorem~\ref{thm:pop-r2}'s global lower bound $\frac{\sqrt{2}-1}{\sqrt{\pi}} \approx 0.2337$.
+\paragraph{Dimension scaling and $\kappa$-independence (Experiments A and C).}
+In Experiment~A, we embed an $r = 3$ regular simplex ($\Delta_{\min} = 1$) in $\R^d$ ($d \in \{5, 10, 20, 40\}$, $m/d \in \{8, 16, 32, 64\}$, $10$ Gaussian trials each) and compute the worst-case empirical ratio $\hat\mu := \min (f(\beta^* + \Delta) - f(\beta^*))/\Fnorm{\Delta}$ over isotropic, single-block, and uniform-translation perturbations within the ball $\Fnorm{\Delta} \le 0.2\Delta_{\min}$. \Cref{tab:dim-kappa} (left) shows no decay in $\hat\mu$ as $d$ increases across the tested range, stabilizing around $0.16$--$0.23$ at $m/d = 32$ over an $8\times$ dimension increase. In Experiment~C, we set $r = 3$, $d = 10$, $m = 600$ with $\beta_1^* = (-\varepsilon/2, 0, \dots, 0)$, $\beta_2^* = (\varepsilon/2, 0, \dots, 0)$, $\beta_3^* = (0, 1, 0, \dots, 0)$ for $\varepsilon \in \{1, 0.2, 0.05, 0.01\}$, driving $\kappa$ from $1.12$ to $100.00$ while $\pi_{\min} \ge 0.250$. \Cref{tab:dim-kappa} (right) shows that $\hat\mu$ on $B(\beta^*, 0.15\Delta_{\min})$ remains in $[0.138, 0.195]$ across a $90\times$ increase in $\kappa$, consistent with \cref{thm:main-finite} and contrasting with $\ell_2$ bounds \cite{ghosh2022maxaffine}. Separately, for $r = 2$ ($d = 10, m = 2000$) across $\Delta_{\min} \in \{0.01, \dots, 5.0\}$ with perturbations up to radius $2.0$, the empirical global ratio stays in $[0.383, 0.464]$ (Supplement~SM2), above \cref{thm:pop-r2}'s lower bound $0.2337$.
 
 \begin{table}[t]
   \centering
-  \caption{Left: Empirical local sharpness $\hat\mu$ (mean $\pm$ std over 10 trials) for $r=3$ simplex parameters at fixed macroscopic radius $0.2\Delta_{\min}$, confirming dimension invariance. Right: Empirical local sharpness for $r=3$ ($d=10, m=600$, radius $0.15\Delta_{\min}$) as $\kappa = \Delta_{\max}/\Delta_{\min}$ varies over two orders of magnitude while $\pi_{\min} \ge 0.25$.}
+  \footnotesize
+  \caption{Left (Experiment~A): Empirical local sharpness $\hat\mu$ (mean $\pm$ std over 10 trials) for $r=3$ simplex parameters at radius $0.2\Delta_{\min}$, consistent with dimension-free sharpness across $d \in \{5, 10, 20, 40\}$. Right (Experiment~C): Empirical sharpness for $r=3$ ($d=10, m=600$, radius $0.15\Delta_{\min}$) across a $90\times$ sweep of $\kappa = \Delta_{\max}/\Delta_{\min}$ with $\pi_{\min} \ge 0.25$.}
   \label{tab:dim-kappa}
-  \small
   \begin{tabular}{@{}rrrr@{}}
     \toprule
     $d$ & $m/d=16$ & $m/d=32$ & $m/d=64$ \\
@@ -911,128 +661,20 @@ To test Theorem~\ref{thm:main-finite}'s independence from $\kappa = \Delta_{\max
   \end{tabular}
 \end{table}
 
-\subsection{Outlier Breakdown: Oblivious vs.\ Omniscient Adversaries, and \texttt{PolyakSGM}}
-
-\paragraph{Experiment B (Outlier fraction sweep and threat-model separation).}
-For $d = 10, r = 3, m = 500$, we sweep $\alpha \in [0, 0.55]$ across $12$ trials under three corruption mechanisms: (i) oblivious support with massive one-sided corruptions $\xi_i = +1000$, evaluating the worst-case local sharpness $\hat\mu$ on $B(\beta^*, 0.15)$; (ii) oblivious support with the Proposition~\ref{prop:converse} corruption $\xi_i = \ip{a_i}{e_1}$, measuring the directional slope along uniform translations $\tilde\beta(t)$; and (iii) an \emph{omniscient-location} adversary that selects the $\alpha m$ samples with largest $|\ip{a_i}{e_1}|$ after observing $A$ and sets $\xi_i = \ip{a_i}{e_1}$. Figure~\ref{fig:outliers-polyak} (left) demonstrates two sharp transitions: under oblivious support, the translation slope tracks the theoretical line $(1 - 2\alpha)\sqrt{2/\pi}/\sqrt{3}$ tightly and crosses zero right at $\alpha = 0.50$, and positive local sharpness under $+1000$ outliers persists through $\alpha = 0.45$; by contrast, the omniscient-location adversary drives the directional slope strictly negative already between $\alpha = 0.20$ and $\alpha = 0.30$ (a deterministic instance in \texttt{adversarial\_tests.py} breaks at $\alpha = 0.25$).
-
-\paragraph{Experiment D (\texttt{PolyakSGM} trajectories and $\ell_1$-vs.-$\ell_2$ cone curves).}
-Figure~\ref{fig:outliers-polyak} (right) plots $\Fnorm{\beta^{(k)} - \beta^*}$ for \texttt{PolyakSGM} ($d = 20, r = 3, m = 500$, initialized at $\Fnorm{\beta^{(0)} - \beta^*} = 0.25$) under oblivious $\pm 100$ corruptions at $\alpha \in \{0, 0.20, 0.30, 0.40\}$ (using the oracle value $f^* = f(\beta^*)$ to isolate the geometric effect of Theorem~\ref{thm:main-finite}'s sharp growth). Consistent with the $(1 - 2\alpha)$ scaling of the sharpness modulus $\mu$, linear convergence persists all the way to $\alpha = 0.40$, reaching $\Fnorm{\beta^{(250)} - \beta^*} = 7.0 \times 10^{-7}$ (and $2.8 \times 10^{-14}$ in $149$ iterations when $\alpha = 0$). Note that in the corrupted regime ($\alpha > 0$), $f(\beta^*)$ is unknown in practice, so Figure~\ref{fig:outliers-polyak} (right) tests the geometric landscape rather than a practical parameter-free outlier solver (in practice one can replace $f^*$ by geometric step decay \cite{davis2024stochastic}). Figure~\ref{fig:cones} displays the exact analytical curves of Proposition~\ref{prop:l1-vs-l2}, confirming the $\Theta(p^2)$ vs.\ $\Theta(p^3)$ conditioning separation on narrow cones.
+\paragraph{Outlier threat-model separation, subgradient diagnostics, and cone curves (Experiments B and D).}
+In Experiment~B ($d = 10, r = 3, m = 500$, $12$ trials), we sweep $\alpha \in [0, 0.55]$ under: (i)~oblivious $+1000$ corruptions measuring $\hat\mu$ on $B(\beta^*, 0.15)$; (ii)~oblivious \cref{prop:converse} corruptions $\xi_i = \ip{a_i}{e_1}$ measuring translation slope; and (iii)~an \emph{omniscient-location} adversary corrupting the $\alpha m$ rows with largest $|\ip{a_i}{e_1}|$. \Cref{fig:outliers-polyak} (left) illustrates the $\alpha = 0.50$ oblivious threshold versus omniscient breakdown strictly below $\alpha = 0.30$ (an explicit instance breaks at $\alpha = 0.25$; Supplement~SM2). In Experiment~D ($d = 20, r = 3, m = 500$, $\pm 100$ oblivious corruptions up to $\alpha = 0.40$), \cref{fig:outliers-polyak} (right) evaluates \texttt{PolyakSGM} initialized at $\Fnorm{\beta^{(0)} - \beta^*} = 0.25$ using step size $(f(\beta^{(k)}) - f(\beta^*))/\Fnorm{g^{(k)}}^2$. We emphasize two oracle dependencies in this diagnostic: initialization uses $\beta^*$, and for $\alpha > 0$ the value $f(\beta^*) > 0$ is the unknown empirical loss at $\beta^*$ (not necessarily the global minimum $f^*$). For direct numerical comparison on the same draw and the same local initialization $\beta^{(0)}$, \cref{fig:outliers-polyak} (right) also overlays an $f(\beta^*)$-free normalized geometric step-decay subgradient trajectory (\texttt{GeomDecaySGM}, $\lambda_k = 0.04 \cdot 0.95^k$, motivated by \cite{davis2024stochastic}) at $\alpha = 0.40$, reaching $\Fnorm{\beta^{(250)} - \beta^*} = 9.11 \times 10^{-8}$ (a 5-seed comparison across $\alpha \in \{0, 0.2, 0.3, 0.4\}$ is reported in Supplement~SM2, Table~SM3). Both trajectories are purely numerical illustrations of the local sharpness landscape in \cref{thm:main-finite} and do not represent a proved solver guarantee. \Cref{fig:cones} displays the analytical $\ell_1$-vs.-$\ell_2$ cone conditioning curves of \cref{prop:l1-vs-l2}.
 
 \begin{figure}[t]
   \centering
-  \begin{tikzpicture}
-    \begin{groupplot}[
-      group style={group size=2 by 1, horizontal sep=1.7cm},
-      width=0.46\textwidth,
-      height=5.2cm,
-      grid=major,
-      grid style={dashed,gray!30},
-      tick label style={font=\footnotesize},
-      label style={font=\small},
-      legend style={font=\scriptsize, cells={anchor=west}}
-    ]
-    \nextgroupplot[
-      xlabel={Outlier fraction $\alpha$},
-      ylabel={Directional slope / empirical $\hat\mu$},
-      xmin=0, xmax=0.56,
-      ymin=-0.35, ymax=0.52,
-      legend pos=south west
-    ]
-      \addplot[black, dashed, thick, domain=0:0.55] {0};
-      \addplot[blue!75!black, thick, mark=*, mark size=1.5pt] coordinates {
-        (0.00, 0.4582) (0.10, 0.3691) (0.20, 0.2807) (0.30, 0.1868)
-        (0.40, 0.0950) (0.45, 0.0509) (0.48, 0.0080) (0.50, -0.0022)
-        (0.52, -0.0343) (0.55, -0.0454)
-      };
-      \addlegendentry{Oblivious Prop.~\ref{prop:converse} slope}
-      \addplot[blue!40!cyan, dotted, very thick, domain=0:0.55] {(1 - 2*x)*0.4607};
-      \addlegendentry{Theory $(1-2\alpha)\sqrt{2/\pi}/\sqrt{3}$}
-      \addplot[green!55!black, thick, mark=square*, mark size=1.4pt] coordinates {
-        (0.00, 0.2098) (0.10, 0.1760) (0.20, 0.1357) (0.30, 0.0910)
-        (0.40, 0.0459) (0.45, 0.0267) (0.48, -0.0002) (0.50, -0.0102)
-        (0.52, -0.0161) (0.55, -0.0352)
-      };
-      \addlegendentry{Oblivious $+1000$ worst $\hat\mu$}
-      \addplot[red!75!black, thick, mark=triangle*, mark size=1.8pt] coordinates {
-        (0.00, 0.4582) (0.10, 0.2222) (0.20, 0.0547) (0.30, -0.0717)
-        (0.40, -0.1862) (0.45, -0.2319) (0.48, -0.2572) (0.50, -0.2714)
-        (0.52, -0.2853) (0.55, -0.3135)
-      };
-      \addlegendentry{Omniscient-location adv.}
-
-    \nextgroupplot[
-      ymode=log,
-      xlabel={Iteration $k$},
-      ylabel={$\Fnorm{\beta^{(k)} - \beta^*}$},
-      xmin=0, xmax=255,
-      ymin=1e-15, ymax=1,
-      legend pos=south west
-    ]
-      \addplot[blue!75!black, thick, mark=*, mark size=1.2pt] coordinates {
-        (0, 2.50e-1) (10, 3.96e-3) (20, 3.14e-4) (30, 3.30e-5) (40, 3.68e-6)
-        (50, 4.48e-7) (60, 6.46e-8) (70, 1.21e-8) (80, 2.35e-9) (90, 4.42e-10)
-        (100, 8.28e-11) (110, 1.52e-11) (120, 2.85e-12) (130, 5.53e-13)
-        (140, 1.05e-13) (149, 2.76e-14)
-      };
-      \addlegendentry{$\alpha = 0.00$}
-      \addplot[green!55!black, thick, mark=square*, mark size=1.1pt] coordinates {
-        (0, 2.50e-1) (20, 1.10e-3) (40, 1.53e-4) (60, 2.15e-5) (80, 2.99e-6)
-        (100, 4.21e-7) (120, 5.94e-8) (140, 8.47e-9) (160, 1.20e-9)
-        (180, 1.71e-10) (200, 2.40e-11) (220, 3.40e-12) (240, 4.82e-13) (250, 1.88e-13)
-      };
-      \addlegendentry{$\alpha = 0.20$}
-      \addplot[orange!85!black, thick, mark=triangle*, mark size=1.3pt] coordinates {
-        (0, 2.50e-1) (20, 8.49e-3) (40, 3.69e-3) (60, 1.66e-3) (80, 7.52e-4)
-        (100, 3.41e-4) (120, 1.51e-4) (140, 6.95e-5) (160, 3.07e-5)
-        (180, 1.39e-5) (200, 6.27e-6) (220, 2.84e-6) (240, 1.31e-6) (250, 8.83e-7)
-      };
-      \addlegendentry{$\alpha = 0.30$}
-      \addplot[red!75!black, thick, mark=diamond*, mark size=1.3pt] coordinates {
-        (0, 2.50e-1) (20, 1.45e-2) (40, 5.48e-3) (60, 2.30e-3) (80, 9.67e-4)
-        (100, 4.17e-4) (120, 1.79e-4) (140, 7.68e-5) (160, 3.26e-5)
-        (180, 1.38e-5) (200, 5.92e-6) (220, 2.54e-6) (240, 1.08e-6) (250, 7.02e-7)
-      };
-      \addlegendentry{$\alpha = 0.40$}
-    \end{groupplot}
-  \end{tikzpicture}
-  \caption{Left (Experiment~B, $d=10, r=3, m=500$): Oblivious-support outliers preserve positive local sharpness up to $\alpha < 1/2$ and cross zero at $\alpha = 0.50$, whereas an omniscient-location adversary breaks local optimality strictly below $\alpha = 0.30$. Right (Experiment~D, $d=20, r=3, m=500$): Linear convergence of oracle-$f^*$ \texttt{PolyakSGM} from initial distance $0.25$ under $\pm 100$ oblivious corruptions up to $\alpha = 0.40$.}
+  \input{figures/fig_outliers_polyak.tex}
+  \caption{Left (Experiment~B, $d=10, r=3, m=500$): Oblivious-support outliers preserve positive local sharpness up to $\alpha < 1/2$ and cross zero near $\alpha = 0.50$, whereas an omniscient-location adversary breaks local optimality strictly below $\alpha = 0.30$. Right (Experiment~D, $d=20, r=3, m=500$): Local trajectories from $\Fnorm{\beta^{(0)} - \beta^*} = 0.25$ under $\pm 100$ oblivious corruptions for oracle-$f(\beta^*)$ \texttt{PolyakSGM} ($\alpha \in \{0, 0.2, 0.3, 0.4\}$) alongside $f(\beta^*)$-free \texttt{GeomDecaySGM} ($\lambda_k = 0.04 \cdot 0.95^k$) at $\alpha = 0.40$; see Supplement~SM2 (Table~SM3) for 5-seed statistics.}
   \label{fig:outliers-polyak}
 \end{figure}
 
 \begin{figure}[t]
   \centering
-  \begin{tikzpicture}
-    \begin{loglogaxis}[
-      width=0.60\textwidth,
-      height=4.7cm,
-      xlabel={Cone probability $p$},
-      ylabel={Conditioning modulus},
-      grid=major,
-      grid style={dashed,gray!30},
-      tick label style={font=\footnotesize},
-      label style={font=\small},
-      legend style={font=\scriptsize, cells={anchor=west}},
-      legend pos=south east
-    ]
-      \addplot[blue!75!black, thick, mark=*, mark size=1.5pt] coordinates {
-        (0.02, 7.872e-4) (0.05, 4.912e-3) (0.10, 1.953e-2) (0.15, 4.348e-2)
-        (0.20, 7.619e-2) (0.25, 1.168e-1) (0.30, 1.644e-1) (0.40, 2.757e-1) (0.50, 3.989e-1)
-      };
-      \addlegendentry{$\ell_1$ exact $\alpha_{\ell_1}(C_p) = \frac{1-\cos(\pi p)}{\sqrt{2\pi}} = \Theta(p^2)$}
-      \addplot[blue!45!cyan, dashed, thick, mark=square*, mark size=1.2pt] coordinates {
-        (0.02, 1.671e-4) (0.05, 1.044e-3) (0.10, 4.178e-3) (0.15, 9.400e-3)
-        (0.20, 1.671e-2) (0.25, 2.611e-2) (0.30, 3.760e-2) (0.40, 6.684e-2) (0.50, 1.044e-1)
-      };
-      \addlegendentry{Lemma~\ref{lem:bathtub} lower bound $\frac{\sqrt{2\pi}}{6}p^2$}
-      \addplot[red!75!black, thick, mark=triangle*, mark size=1.6pt] coordinates {
-        (0.02, 5.260e-5) (0.05, 8.184e-4) (0.10, 6.451e-3) (0.15, 2.124e-2)
-        (0.20, 4.863e-2) (0.25, 9.085e-2) (0.30, 1.486e-1) (0.40, 3.065e-1) (0.50, 5.000e-1)
-      };
-      \addlegendentry{$\ell_2$ exact $\lambda_{\ell_2}(C_p) = p - \frac{\sin(2\pi p)}{2\pi} = \Theta(p^3)$}
-    \end{loglogaxis}
-  \end{tikzpicture}
-  \caption{Analytical comparison of $\ell_1$ versus $\ell_2$ active-cone conditioning on narrow 2D cones $C_p$ (Proposition~\ref{prop:l1-vs-l2}). As $p \downarrow 0$, $\alpha_{\ell_1}(C_p) = \Theta(p^2)$ remains a full order of magnitude better conditioned than the $\ell_2$ Gram eigenvalue $\lambda_{\ell_2}(C_p) = \Theta(p^3)$.}
+  \input{figures/fig_cones.tex}
+  \caption{Analytical $\ell_1$ versus $\ell_2$ active-cone conditioning on narrow 2D cones $C_p$ (\cref{prop:l1-vs-l2}): $\alpha_{\ell_1}(C_p) = \Theta(p^2)$ improves by a full factor of $p$ over $\lambda_{\min}(G_p) = \Theta(p^3)$.}
   \label{fig:cones}
 \end{figure}
 
@@ -1041,18 +683,18 @@ Figure~\ref{fig:outliers-polyak} (right) plots $\Fnorm{\beta^{(k)} - \beta^*}$ f
 \label{sec:discussion}
 % ============================================================================
 
-We highlight five open limitations of our results that merit further research:
-\begin{enumerate}[leftmargin=*,nosep]
-  \item \textbf{Local versus global finite-sample sharpness.} Theorem~\ref{thm:pop-r2} establishes \emph{global} scale-free population sharpness for $r = 2$, whereas our finite-sample Theorem~\ref{thm:main-finite} is \emph{local} on $B(\beta^*, \rho)$ (and does not exclude higher-valued spurious local minima elsewhere in $B(\beta^*, \rho)$ or outside it). Proving global finite-sample sharpness for $r = 2$ (and characterizing initialization requirements for $r \ge 3$) remains open.
-  \item \textbf{Conservative sample complexity in $r$ and $\pi_{\min}$.} Theorem~\ref{thm:main-finite} requires $m \gtrsim \frac{d}{\gamma^2}\log\frac{1}{\gamma} + \frac{rd}{\gamma}\log\frac{r}{\gamma}$. Plugging the worst-case bathtub bound $\alpha_{\min} \ge \frac{\sqrt{2\pi}}{6}\pi_{\min}^2$ yields $\tilde O(d/\pi_{\min}^4)$ samples (or $\tilde O(r^4 d)$ for balanced cones $\pi_{\min} = 1/r$), whereas numerical experiments in \cite[Fig.~3]{charisopoulos2024superpolyak} and our Table~\ref{tab:dim-kappa} suggest that $m = O(rd)$ suffices empirically. Tightening the $\gamma^{-2}$ cone concentration step via Mendelson's small-ball method (which heuristically reduces the cone term to $\tilde O(d/\pi_{\min}^3)$ in the noiseless regime) or establishing $O(rd)$ complexity remains an important challenge.
-  \item \textbf{Oblivious versus omniscient outlier locations.} Our $\alpha < 1/2$ guarantee requires the corrupted index set $S_{\mathrm{bad}}$ to be fixed independently of $A$ (even though the corruption magnitudes $\xi_i$ may depend arbitrarily on $A$). As Figure~\ref{fig:outliers-polyak} (left) shows, an omniscient adversary selecting $S_{\mathrm{bad}}$ after seeing $A$ can break local optimality strictly below $\alpha = 1/2$; quantifying the exact breakdown fraction $\alpha_{\mathrm{omni}}(\pi_{\min})$ under omniscient support selection is left for future work.
-  \item \textbf{Gaussian design assumption.} Both the exact polar wedge integrals (Theorem~\ref{thm:pop-r2}, Lemmas~\ref{lem:polar-flip} and~\ref{lem:flip-conc}) and our Lean~4 formalization rely on standard Gaussian covariates $a_i \sim \mathcal{N}(0, I_d)$. Extending Theorem~\ref{thm:main-finite} to isotropic sub-Gaussian designs satisfying anti-concentration / small-ball conditions—and to dense heavy-tailed noise rather than sparse corruptions—is a natural next step.
-  \item \textbf{Relation to alternating LAD LP methods and unpublished overlap.} As noted in Section~\ref{sec:intro}, Kim, Kanj, and Lee \cite{kim2024thesis,kim2024mds} proposed alternating LAD linear programs (\texttt{RobustPA}) for robust max-affine regression (extending \cite{kim2025robustpr} for phase retrieval), with full proofs not yet publicly available as of November~2026. Because finite-sample convergence proofs for alternating LAD LPs naturally rely on signed active-cone $\ell_1$ lower bounds and pairwise flip-wedge bounds that can themselves imply local sharp growth of $f$, the exact degree of theoretical overlap cannot be assessed until a full published analysis of \texttt{RobustPA} appears. Comparing basin radii, explicit constants, and sample complexities across first-order subgradient methods and alternating LP solvers remains an important follow-up.
+Five open limitations merit further investigation:
+\begin{enumerate}
+  \item \textbf{Local versus global finite-sample sharpness.} \Cref{thm:pop-r2} is global for $r = 2$, whereas \cref{thm:main-finite} is local on $B(\beta^*, \rho)$ and does not exclude higher-valued spurious local minima. Proving global finite-sample sharpness for $r = 2$ and establishing provable robust initialization for $r \ge 3$ remain open.
+  \item \textbf{Sample complexity in $r$ and $\pi_{\min}$.} \Cref{thm:main-finite} requires $m \gtrsim \frac{d}{\gamma^2}\log\frac{1}{\gamma} + \frac{rd}{\gamma}\log\frac{r}{\gamma}$, which via $\alpha_{\min} \ge \frac{\sqrt{2\pi}}{6}\pi_{\min}^2$ yields $\tilde O(d/\pi_{\min}^4)$ samples, whereas \cite[Section~5.2.2; Figure~5 in arXiv:2201.04611]{charisopoulos2024superpolyak} and \cref{tab:dim-kappa} suggest $m = O(rd)$ suffices empirically. Tightening the cone-concentration term (e.g., via Mendelson's small-ball method) remains open.
+  \item \textbf{Oblivious versus omniscient outlier support.} \Cref{thm:main-finite} requires $S_{\mathrm{bad}}$ to be independent of $A$ (allowing arbitrary $\xi_i(A)$). Quantifying the exact omniscient-support breakdown threshold $\alpha_{\mathrm{omni}}(\pi_{\min})$ is left for future work.
+  \item \textbf{Gaussian design and quantitative $(b)$-regularity.} Our polar wedge integrals and Lean~4 formalization rely on $a_i \sim \mathcal{N}(0, I_d)$. Extending \cref{thm:main-finite} to isotropic sub-Gaussian designs and deriving quantitative $(b)$-regularity constants $(C_{(b)}, \eta_{(b)})$ for \cref{cor:superpolyak} are natural next steps.
+  \item \textbf{Unpublished overlap with alternating LAD methods.} As noted in \cref{sec:intro}, Kim, Kanj, and Lee \cite{kim2024mds,kim2024thesis} announced an alternating LAD / Gauss--Newton approach for robust max-affine regression (extending \cite{kim2025robustpr}), with proofs not yet publicly available. Because finite-sample proofs for alternating LAD methods may share underlying active-cone and wedge-flip concentration tools, the exact degree of overlap cannot be determined until a full published analysis appears.
 \end{enumerate}
 
 % ============================================================================
 \appendix
-\section{Supplemental Technical Lemmas}
+\section{Supplemental Elementary Lemmas}
 \label{app:proofs}
 % ============================================================================
 
@@ -1065,97 +707,32 @@ We highlight five open limitations of our results that merit further research:
   \]
 \end{lemma}
 \begin{proof}
-Set $R := \sqrt{c_1^2 + c_2^2 + 2c_1 c_2 \cos\theta} > 0$. Define the unique switching angle $\psi^* \in (0, \theta)$ by
-\[
-  \cos\psi^* = \frac{c_1 + c_2\cos\theta}{R}, \qquad \sin\psi^* = \frac{c_2\sin\theta}{R} > 0,
-\]
-so that $\cos(\theta - \psi^*) = \frac{c_2 + c_1\cos\theta}{R}$ and $\sin(\theta - \psi^*) = \frac{c_1\sin\theta}{R} > 0$. On $(0, \psi^*]$, $\psi \mapsto c_1\sin\psi - c_2\sin(\theta - \psi) = R\sin(\psi - \psi^*) \le 0$, so the minimum equals $c_1\sin\psi$; on $[\psi^*, \theta)$, $R\sin(\psi - \psi^*) \ge 0$, so the minimum equals $c_2\sin(\theta - \psi)$. Integrating directly gives
-\begin{align*}
-  \int_0^{\psi^*} c_1\sin\psi\,d\psi + \int_{\psi^*}^\theta c_2\sin(\theta - \psi)\,d\psi
-  &= c_1(1 - \cos\psi^*) + c_2\bigl(1 - \cos(\theta - \psi^*)\bigr) \\
-  &= c_1 + c_2 - \frac{c_1^2 + c_2^2 + 2c_1 c_2\cos\theta}{R}
-  = c_1 + c_2 - R. \qedhere
-\end{align*}
+Set $R := \sqrt{c_1^2 + c_2^2 + 2c_1 c_2 \cos\theta} > 0$, and define $\psi^* \in (0, \theta)$ by $\cos\psi^* = \frac{c_1 + c_2\cos\theta}{R}$ and $\sin\psi^* = \frac{c_2\sin\theta}{R} > 0$, so $\cos(\theta - \psi^*) = \frac{c_2 + c_1\cos\theta}{R}$. Since $c_1\sin\psi - c_2\sin(\theta - \psi) = R\sin(\psi - \psi^*)$ switches sign at $\psi^*$, direct integration gives $c_1(1 - \cos\psi^*) + c_2(1 - \cos(\theta - \psi^*)) = c_1 + c_2 - R$.
 \end{proof}
 
 \begin{lemma}[Numerical bound for the $(1/6)$-net operator-norm tail]
   \label{lem:op-num}
-  For all integers $m, d \ge 0$ with $32d \le m$,
-  \[
-    13^d \Bigl(\frac{5}{3}e^{-8/9}\Bigr)^m \le e^{-9m/32}.
-  \]
+  For all integers $m, d \ge 0$ with $32d \le m$, $13^d \bigl(\frac{5}{3}e^{-8/9}\bigr)^m \le e^{-9m/32}$.
 \end{lemma}
 \begin{proof}
-We verify two elementary base inequalities, mirroring the Lean~4 lemma\\ \texttt{thirteen\_pow\_d\_mul\_chisq\_le}:
-\begin{enumerate}[label=(\roman*),leftmargin=*,nosep]
-  \item \emph{Block of $32$ samples:} Since $e \ge \sum_{j=0}^5 \frac{1}{j!} = \frac{163}{60}$, direct rational arithmetic gives $13\cdot (\frac{5}{3})^{32} \approx 1.633 \times 10^8 \le (\frac{163}{60})^{19} \approx 1.778 \times 10^8 \le e^{19} \le e^{175/9}$ (note $e^{175/9} \approx 2.784 \times 10^8$). Multiplying by $e^{-256/9} = (e^{-8/9})^{32}$ and using $\frac{175}{9} - \frac{256}{9} = -9$ yields $13\bigl(\frac{5}{3}e^{-8/9}\bigr)^{32} \le e^{-9}$.
-  \item \emph{Single extra sample:} Using $e^x \ge 1 + x + \frac{x^2}{2}$ at $x = \frac{175}{288}$, we have $e^{175/288} \ge 1 + \frac{175}{288} + \frac{1}{2}\bigl(\frac{175}{288}\bigr)^2 \approx 1.792 > \frac{5}{3}$. Multiplying by $e^{-8/9}$ and noting $\frac{175}{288} - \frac{8}{9} = -\frac{9}{32}$ gives $\frac{5}{3}e^{-8/9} \le e^{-9/32}$.
-\end{enumerate}
-Writing $m = 32d + k$ with $k := m - 32d \ge 0$ and combining (i) raised to the $d$-th power with (ii) raised to the $k$-th power yields
-\[
-  13^d \Bigl(\frac{5}{3}e^{-8/9}\Bigr)^{32d + k}
-  = \Bigl[13\Bigl(\frac{5}{3}e^{-8/9}\Bigr)^{32}\Bigr]^d \Bigl(\frac{5}{3}e^{-8/9}\Bigr)^k
-  \le e^{-9d} e^{-(9/32)k} = e^{-9m/32}. \qedhere
-\]
+Mirroring the Lean~4 lemma \texttt{thirteen\_pow\_d\_mul\_chisq\_le}: (i)~$e \ge \sum_{j=0}^5 \frac{1}{j!} = \frac{163}{60}$ gives $13(\frac{5}{3})^{32} \approx 1.633 \times 10^8 \le (\frac{163}{60})^{19} \approx 1.778 \times 10^8 \le e^{19} \le e^{175/9}$, so $13(\frac{5}{3}e^{-8/9})^{32} \le e^{-9}$; (ii)~$e^{175/288} \ge 1 + \frac{175}{288} + \frac{1}{2}(\frac{175}{288})^2 \ge 1.792 > \frac{5}{3}$ gives $\frac{5}{3}e^{-8/9} \le e^{-9/32}$. Writing $m = 32d + k$ ($k \ge 0$) yields $13^d(\frac{5}{3}e^{-8/9})^{32d+k} \le e^{-9d}e^{-(9/32)k} = e^{-9m/32}$.
 \end{proof}
 
-\begin{lemma}[Radial Gaussian moments and Gamma--factorial Bernstein induction]
+\begin{lemma}[Radial Gaussian moments and Bernstein induction]
   \label{lem:moment-ind}
-  For every integer $p \ge 0$, $\int_0^\infty r^{p+1} e^{-r^2/2}\,dr = 2^{p/2}\Gamma(1 + p/2)$. Moreover, for every integer $p \ge 2$,
-  \[
-    2^{3p/2}\Gamma\Bigl(1 + \frac{p}{2}\Bigr) \le p!\,2^p.
-  \]
+  For every integer $p \ge 0$, $\int_0^\infty r^{p+1} e^{-r^2/2}\,dr = 2^{p/2}\Gamma(1 + p/2)$. Moreover, for every integer $p \ge 2$, $2^{3p/2}\Gamma(1 + p/2) \le p!\,2^p$.
 \end{lemma}
 \begin{proof}
-The integral identity holds at $p = 0$ ($\int_0^\infty r e^{-r^2/2}\,dr = 1 = \Gamma(1)$) and $p = 1$ ($\int_0^\infty r^2 e^{-r^2/2}\,dr = \sqrt{\pi/2} = \sqrt{2}\Gamma(3/2)$); integrating by parts gives $\int_0^\infty r^{p+3} e^{-r^2/2}\,dr = (p + 2)\int_0^\infty r^{p+1}e^{-r^2/2}\,dr$, matching $2^{(p+2)/2}\Gamma(2 + p/2) = 2(1 + p/2)2^{p/2}\Gamma(1 + p/2)$. For the inequality, we induct by steps of $2$:
-\begin{itemize}[leftmargin=*,nosep]
-  \item Base $p = 2$: $2^3\Gamma(2) = 8 = 2!\,2^2$.
-  \item Base $p = 3$: $2^{9/2}\Gamma(5/2) = 16\sqrt{2}\cdot \frac{3\sqrt{\pi}}{4} = 12\sqrt{2\pi} < 12\sqrt{6.3} < 31 < 48 = 3!\,2^3$.
-  \item Step $p \to p + 2$ ($p \ge 2$): the left-hand side multiplies by $2^3(1 + p/2) = 4(p + 2)$, while the right-hand side multiplies by $4(p + 1)(p + 2) \ge 12(p + 2) > 4(p + 2)$. \qedhere
-\end{itemize}
+The integral identity holds at $p = 0, 1$ and follows by integration by parts. For the inequality, induct by steps of~$2$: at $p = 2$, $2^3\Gamma(2) = 8 = 2!\,2^2$; at $p = 3$, $2^{9/2}\Gamma(5/2) = 12\sqrt{2\pi} < 31 < 48 = 3!\,2^3$; passing from $p \ge 2$ to $p + 2$ multiplies the left-hand side by $4(p + 2)$ and the right-hand side by $4(p + 1)(p + 2) \ge 12(p + 2)$.
 \end{proof}
 
-% ============================================================================
-\section{Machine-Checked Lean 4 Formalization Summary}
-\label{app:formalization}
-% ============================================================================
+\section*{Acknowledgments and Declarations}
+\textbf{Disclosure of Artificial Intelligence Use.} The author discloses that generative AI tools (autonomous LLM-based research assistants, together with human-initiated adversarial review via separate LLM sessions) participated substantively across this project, including research problem exploration, mathematical theorem formulation, proof development and revision, literature retrieval, Lean~4 formalization, Python coding and numerical experiments, and manuscript drafting and formatting. No AI tool is listed as an author. To independently verify core reasoning steps, \cref{thm:pop-r2,thm:main-finite}, \cref{lem:flip-decomp,lem:bathtub,lem:op-norm,lem:cone-conc,lem:flip-conc}, \cref{lem:trig-wedge,lem:op-num,lem:moment-ind}, and \cref{prop:converse} were machine-checked by the Lean~4 kernel (\texttt{v4.35.0}, zero \texttt{sorry}s, standard axioms only; Supplement~SM1). Pen-and-paper results outside the Lean kernel are explicitly itemized in Supplement~SM1. This document is an unrefereed research preprint.
 
-To provide independent kernel-level verification of our main statistical and geometric theorems, we formalized the core results in Lean~4 (\texttt{leanprover/lean4:v4.35.0}) using only \texttt{mathlib v4.35.0} (git commit \texttt{56a005855ea17e0b0958f73ec801ae140b0a1679}). The companion repository \texttt{lean/} builds with zero \texttt{sorry}, zero \texttt{admit}, and zero custom axioms; every verified theorem passes \texttt{\#print axioms} depending exclusively on Lean's three standard classical axioms \texttt{[propext, Classical.choice, Quot.sound]}. Table~\ref{tab:lean-summary} summarizes the exact verification boundary (full line-by-line mapping and build instructions appear in \texttt{paper/FORMALIZATION.md} and \texttt{docs/formal\_statement\_audit.md}).
+\medskip
+\noindent\textbf{Code, Archival Materials, and Conflict of Interest.} The companion Lean~4 formal verification package, reproducible experiment scripts, and audit records are available at \url{https://github.com/Vesaluna/sharp-growth-max-linear-regression}. The author declares no competing financial or non-financial interests.
 
-\begin{table}[h]
-  \centering
-  \caption{Summary of Lean~4 (\texttt{v4.35.0}) formal verification status for every result in this manuscript.}
-  \label{tab:lean-summary}
-  \footnotesize
-  \resizebox{\textwidth}{!}{%
-  \begin{tabular}{@{}llll@{}}
-    \toprule
-    Manuscript Result & Primary Lean Declaration(s) & Status & Scope / Notes \\
-    \midrule
-    Prop.~\ref{prop:deterministic-eb} & — & Human proof only & Classical \cite{robinson1981some,dolgopolik2023nonlocal}. \\
-    Prop.~\ref{prop:non-weak-convex} & \texttt{theorem1b\_counterexample\_constant}, & Partially formalized & Counterexample \& (a) verified; \\
-      & \texttt{theorem1b\_class\_not\_weakly\_convex} & & general $K(\beta;E)<0$ is human proof. \\
-    Prop.~\ref{prop:stab-decay} & — & Human proof only & Diagnostic stability radius ($d=1$ vs.\ $d \ge 2$). \\
-    \textbf{Theorem~\ref{thm:pop-r2}} & \texttt{theorem2\_gaussian\_remainder\_bounds}, & \textbf{Fully formalized} & Zero hypotheses; all $d \ge 1$, \\
-      & \texttt{theorem2\_unconditional\_global\_sharpness} & & incl.\ $\beta_1^* = \beta_2^*$ \& collinear. \\
-    Lemma~\ref{lem:flip-decomp} & \texttt{lemma31\_pointwise\_flip\_decomp} & \textbf{Fully formalized} & Arbitrary inner product space $E$. \\
-    Lemma~\ref{lem:polar-flip} & — & Human proof only & Used only in Theorem~\ref{thm:pop-genr}. \\
-    \textbf{Lemma~\ref{lem:bathtub}} & \texttt{lemma33\_gaussian\_bathtub} & \textbf{Fully formalized} & True \texttt{stdGaussian E} integral. \\
-    Prop.~\ref{prop:l1-vs-l2}, Thm.~\ref{thm:pop-genr} & Components (Lemmas~\ref{lem:flip-decomp}, \ref{lem:bathtub}) & Partially formalized & Population assembly human proof. \\
-    \textbf{Theorem~\ref{thm:main-finite}} & \texttt{theorem4\_unconditional\_probabilistic}, & \textbf{Fully formalized} & Both $\Lonenorm{\cdot}$ \& $\Fnorm{\cdot}$; \\
-      & \texttt{theorem4\_from\_pi\_min} & & $\pi_{\min}$ bridge via Lemma~\ref{lem:bathtub}. \\
-    Cor.~\ref{cor:r2-explicit} & \texttt{corollary41\_exact\_identities} & Partially formalized & Exact constants in Lean; $3400d$ \\
-      & & & numeric check in Python. \\
-    Cor.~\ref{cor:superpolyak} & \texttt{(A1)} via Thm.~\ref{thm:main-finite} & Partially formalized & \texttt{(A2)} cites \cite{charisopoulos2024superpolyak}. \\
-    \textbf{Prop.~\ref{prop:converse}} & \texttt{proposition41\_prime\_breakdown\_necessity} & \textbf{Fully formalized} & True \texttt{iidStdGaussian E m} tail. \\
-    Lemmas~\ref{lem:op-norm}--\ref{lem:flip-conc} & \texttt{prob\_operator\_norm\_event}, \texttt{prob\_cone\_net\_event}, & \textbf{Fully formalized} & Full measure-theoretic proofs, \\
-      & \texttt{prob\_flip\_net\_event} & & incl.\ sphere covering numbers. \\
-    \bottomrule
-  \end{tabular}}
-\end{table}
-
-\bibliographystyle{plain}
+\bibliographystyle{abbrvnat}
 \bibliography{references}
 
 \end{document}
-

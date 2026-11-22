@@ -1,3 +1,7 @@
+# Local archival release candidate bundles (never commit duplicate PDFs/sources)
+release/
+release/zenodo-v1/
+
 # Lean build cache and downloaded dependencies
 lean/.lake/
 
@@ -9,7 +13,7 @@ experiments/.venv/
 # macOS metadata
 .DS_Store
 
-# LaTeX intermediate files (keep paper/main.tex, paper/references.bib, paper/main.pdf, paper/figures/)
+# LaTeX intermediate files (keep paper/main.tex, paper/supplement.tex, paper/references.bib, paper/main.pdf, paper/supplement.pdf, paper/figures/)
 paper/*.aux
 paper/*.bbl
 paper/*.blg
@@ -18,4 +22,5 @@ paper/*.fls
 paper/*.log
 paper/*.out
 paper/*.synctex.gz
+paper/*.thm
 paper/*.toc
