@@ -25,31 +25,39 @@ Unlike quadratic $`\ell_1`$ phase retrieval or low-rank matrix recovery, $f$ is 
 
 ## 2. Main Results (`paper/main.pdf`)
 
-- **Structural Preliminaries (Section 2):**
-  - **Proposition 2.1:** Deterministic piecewise-affine error bounds via Robinson (1981) and Dolgopolik (2023), showing coercivity and a global error bound when $`\{a_i\}_{i=1}^m`$ positively spans $`\mathbb{R}^d`$, and a 4-point $d=2, r=2$ counterexample where coercivity and global error bounds fail without positive spanning.
-  - **Proposition 2.2:** Non-weak-convexity and directional V-kink criterion: Part (a) gives an explicit $d=1, r=2, m=1$ non-weakly-convex witness, and Part (b) characterizes local non-weak-convexity via the directional slope jump $`K(\beta; E) < 0`$ (paired with a cancellation counterexample refuting the naive active-tie condition).
-  - **Proposition 2.3:** Sharp dimensional dichotomy for the active-set stability radius ($d = 1$ invariance $`\rho_{\mathrm{stab}} = \|v\|_2/\sqrt{2}`$ a.s. vs. uniform non-asymptotic $`\Theta_{\mathbb{P}}(\|v\|_2/(m\sqrt{d}))`$ collapse for $`d \ge 2`$).
-- **Global $r = 2$ Gaussian Population Sharpness (Section 3):**
-  - **Theorem 3.1 & Remark 3.2:** Exact coupled one-sided remainder identity in block coordinates and scale-free global sharpness
+### Structural Preliminaries (Section 2):
 
-    $$
-    F(\beta) \ge \frac{\sqrt{2}-1}{\sqrt{\pi}}\,\mathrm{dist}(\beta, X_{\mathrm{pop}}^*)
-    $$
+- **Proposition 2.1:** Deterministic piecewise-affine error bounds via Robinson (1981) and Dolgopolik (2023), showing coercivity and a global error bound when $`\{a_i\}_{i=1}^m`$ positively spans $`\mathbb{R}^d`$, and a 4-point $d=2, r=2$ counterexample where coercivity and global error bounds fail without positive spanning.
+- **Proposition 2.2:** Non-weak-convexity and directional V-kink criterion: Part (a) gives an explicit $d=1, r=2, m=1$ non-weakly-convex witness, and Part (b) characterizes local non-weak-convexity via the directional slope jump $`K(\beta; E) < 0`$ (paired with a cancellation counterexample refuting the naive active-tie condition).
+- **Proposition 2.3:** Sharp dimensional dichotomy for the active-set stability radius ($d = 1$ invariance $`\rho_{\mathrm{stab}} = \|v\|_2/\sqrt{2}`$ a.s. vs. uniform non-asymptotic $`\Theta_{\mathbb{P}}(\|v\|_2/(m\sqrt{d}))`$ collapse for $`d \ge 2`$).
 
-    for all $`d \ge 1`$ (Remark 3.2 notes non-optimality of the Frobenius constant via the balanced witness $`\frac{2-\sqrt{2}}{\sqrt{\pi}} \approx 0.330495`$).
-- **General-$`r`$ Population Geometry & $`\ell_1`$-vs.-$`\ell_2`$ Conditioning (Section 4):**
-  - **Lemmas 4.1–4.3, Proposition 4.4, Theorem 4.5:** Pointwise flip decomposition (**Lemma 4.1**), exact 2D Gaussian polar flip integral (**Lemma 4.2**), universal Gaussian bathtub bound $`\alpha(C) \ge \frac{\sqrt{2\pi}}{6}\pi(C)^2`$ (**Lemma 4.3**), explicit $`\Theta(p^2)`$ vs. $`\Theta(p^3)`$ active-cone conditioning advantage of $`\ell_1`$ over $`\ell_2`$ (**Proposition 4.4**), and general-$`r`$ local population sharp growth (**Theorem 4.5**).
-- **Finite-Sample Outlier-Robust Sharp Growth (Section 5):**
-  - **Theorem 5.1 & Remark 5.2:** Under isotropic Gaussian covariates and an oblivious fixed corruption subset $`S_{\mathrm{bad}}`$ of fraction $`\alpha < 1/2`$, with high probability over $a$ *simultaneously* for all arbitrary (possibly data-dependent) outlier magnitudes $`\xi`$ supported on $`S_{\mathrm{bad}}`$,
+### Global $r = 2$ Gaussian Population Sharpness (Section 3):
 
-    $$
-    f_\xi(\beta) - f_\xi(\beta^*) \ge \frac{(1 - 2\alpha)\alpha_{\min}}{4}\max\bigl(\|\beta - \beta^*\|_{1,2},\, \|\beta - \beta^*\|_F\bigr)
-    \qquad \forall \beta \in B(\beta^*, \rho),
-    $$
+**Theorem 3.1 & Remark 3.2:** Exact coupled one-sided remainder identity in block coordinates and scale-free global sharpness
 
-    with global $2$-Lipschitzness and unique local recovery $`\beta^* \in X^*`$ (plus exact half-radius distance identity when $`\xi \equiv 0`$). **Remark 5.2** details the $`\kappa`$-free and $`\log(m/d)`$-free sample complexity structure and its purely geometric $`\pi_{\min}`$-parameterized version via Lemma 4.3.
-  - **Corollaries 5.3–5.4:** Explicit noiseless $r = 2$ sample threshold $`m \ge 3400\,d + 480\log(6/\delta_{\mathrm{fail}})`$ (dominating both the cone-event branch $`\approx 1494.35\,d + 402.12\log(6/\delta_{\mathrm{fail}})`$ and flip-event branch $`\approx 3046.45\,d + 477.93\log(6/\delta_{\mathrm{fail}})`$) with $`\rho/2 = \|v\|_2/(104\sqrt{\pi})`$ and $`L/\mu \le 8\sqrt{2\pi}`$ (**Corollary 5.3**), and verification of Assumption `(A1)` in Charisopoulos & Davis (2024, `arXiv:2201.04611`, Prop. 2.1, Thm. 2.1, Cor. 2.3) (**Corollary 5.4**).
-  - **Proposition 5.5:** Matching breakdown converse showing recovery fails with probability $`\ge 1 - \exp(-\frac{(2\alpha-1)^2}{2\pi}m)`$ whenever $`\alpha > 1/2`$.
+```math
+F(\beta) \ge \frac{\sqrt{2}-1}{\sqrt{\pi}}\,\mathrm{dist}(\beta, X_{\mathrm{pop}}^*)
+```
+
+for all $`d \ge 1`$ (Remark 3.2 notes non-optimality of the Frobenius constant via the balanced witness $`\frac{2-\sqrt{2}}{\sqrt{\pi}} \approx 0.330495`$).
+
+### General-$`r`$ Population Geometry & $`\ell_1`$-vs.-$`\ell_2`$ Conditioning (Section 4):
+
+- **Lemmas 4.1–4.3, Proposition 4.4, Theorem 4.5:** Pointwise flip decomposition (**Lemma 4.1**), exact 2D Gaussian polar flip integral (**Lemma 4.2**), universal Gaussian bathtub bound $`\alpha(C) \ge \frac{\sqrt{2\pi}}{6}\pi(C)^2`$ (**Lemma 4.3**), explicit $`\Theta(p^2)`$ vs. $`\Theta(p^3)`$ active-cone conditioning advantage of $`\ell_1`$ over $`\ell_2`$ (**Proposition 4.4**), and general-$`r`$ local population sharp growth (**Theorem 4.5**).
+
+### Finite-Sample Outlier-Robust Sharp Growth (Section 5):
+
+**Theorem 5.1 & Remark 5.2:** Under isotropic Gaussian covariates and an oblivious fixed corruption subset $`S_{\mathrm{bad}}`$ of fraction $`\alpha < 1/2`$, with high probability over $a$ *simultaneously* for all arbitrary (possibly data-dependent) outlier magnitudes $`\xi`$ supported on $`S_{\mathrm{bad}}`$,
+
+```math
+f_\xi(\beta) - f_\xi(\beta^*) \ge \frac{(1 - 2\alpha)\alpha_{\min}}{4}\max\bigl(\|\beta - \beta^*\|_{1,2},\, \|\beta - \beta^*\|_F\bigr)
+\qquad \forall \beta \in B(\beta^*, \rho),
+```
+
+with global $2$-Lipschitzness and unique local recovery $`\beta^* \in X^*`$ (plus exact half-radius distance identity when $`\xi \equiv 0`$). **Remark 5.2** details the $`\kappa`$-free and $`\log(m/d)`$-free sample complexity structure and its purely geometric $`\pi_{\min}`$-parameterized version via Lemma 4.3.
+
+- **Corollaries 5.3–5.4:** Explicit noiseless $r = 2$ sample threshold $`m \ge 3400\,d + 480\log(6/\delta_{\mathrm{fail}})`$ (dominating both the cone-event branch $`\approx 1494.35\,d + 402.12\log(6/\delta_{\mathrm{fail}})`$ and flip-event branch $`\approx 3046.45\,d + 477.93\log(6/\delta_{\mathrm{fail}})`$) with $`\rho/2 = \|v\|_2/(104\sqrt{\pi})`$ and $`L/\mu \le 8\sqrt{2\pi}`$ (**Corollary 5.3**), and verification of Assumption `(A1)` in Charisopoulos & Davis (2024, `arXiv:2201.04611`, Prop. 2.1, Thm. 2.1, Cor. 2.3) (**Corollary 5.4**).
+- **Proposition 5.5:** Matching breakdown converse showing recovery fails with probability $`\ge 1 - \exp(-\frac{(2\alpha-1)^2}{2\pi}m)`$ whenever $`\alpha > 1/2`$.
 
 ---
 
@@ -82,6 +90,7 @@ Pen-and-paper results (**Propositions 2.1, 2.2(b), 2.3, 4.4**, **Remark 3.2**, *
 ## 5. Reproducibility
 
 ### Rebuild Lean 4 Proofs
+
 ```bash
 cd lean
 lake exe cache get
@@ -90,6 +99,7 @@ lake build
 Expected result: exit code `0`, `Build completed successfully (3803 jobs).`, and 39 standard-axiom lines.
 
 ### Rebuild Standalone PDFs
+
 ```bash
 cd paper
 pdflatex -interaction=nonstopmode main.tex && bibtex main && pdflatex -interaction=nonstopmode main.tex && pdflatex -interaction=nonstopmode main.tex
@@ -97,6 +107,7 @@ pdflatex -interaction=nonstopmode supplement.tex && pdflatex -interaction=nonsto
 ```
 
 ### Run Python Numerical Experiments
+
 ```bash
 python3 -m venv experiments/.venv
 experiments/.venv/bin/pip install -r experiments/requirements.txt
