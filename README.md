@@ -1,4 +1,4 @@
-# Sharp Growth and Outlier-Robust Local Recovery in $\ell_1$ Max-Linear Regression
+# Sharp Growth and Outlier-Robust Local Recovery in $`\ell_1`$ Max-Linear Regression
 
 > **Status:** **Standalone Research Preprint (AI-assisted). Not peer-reviewed.** Core statistical theorems are machine-checked in Lean 4, while pen-and-paper proofs and Lean-to-LaTeX correspondence have **not** yet undergone independent review by a human mathematician.
 
@@ -12,45 +12,55 @@
 
 ## 1. Overview
 
-This repository accompanies the research preprint *"Sharp Growth and Outlier-Robust Local Recovery in $\ell_1$ Max-Linear Regression"*, which studies the nonsmooth, nonconvex least absolute deviations ($\ell_1$) empirical risk for $r$-component max-linear regression under isotropic Gaussian covariates $a_i \stackrel{\text{i.i.d.}}{\sim} \mathcal{N}(0, I_d)$:
-$$
+This repository accompanies the research preprint *"Sharp Growth and Outlier-Robust Local Recovery in $`\ell_1`$ Max-Linear Regression"*, which studies the nonsmooth, nonconvex least absolute deviations ($`\ell_1`$) empirical risk for $r$-component max-linear regression under isotropic Gaussian covariates $`a_i \stackrel{\text{i.i.d.}}{\sim} \mathcal{N}(0, I_d)`$:
+
+```math
 f(\beta) := \frac{1}{m}\sum_{i=1}^m \Bigl|y_i - \max_{1 \le j \le r} \langle a_i, \beta_j \rangle\Bigr|,
 \qquad \beta = (\beta_1, \dots, \beta_r) \in \mathbb{R}^{r \times d}.
-$$
+```
 
-Unlike quadratic $\ell_1$ phase retrieval or low-rank matrix recovery, $f$ is **not weakly convex** in general (**Proposition 2.2**), and its naive active-set stability radius collapses as $\Theta_{\mathbb{P}}(\|v\|_2/(m\sqrt{d})) \to 0$ for $d \ge 2$ (**Proposition 2.3**). Nevertheless, by replacing active-set freezing with pointwise flip-set decomposition (**Lemma 4.1**) and active-cone Gaussian concentration (**Lemmas 4.3, 5.6–5.8**), we establish non-asymptotic, dimension-free local sharp growth and outlier-robust recovery for arbitrary $r \ge 2$.
+Unlike quadratic $`\ell_1`$ phase retrieval or low-rank matrix recovery, $f$ is **not weakly convex** in general (**Proposition 2.2**), and its naive active-set stability radius collapses as $`\Theta_{\mathbb{P}}(\|v\|_2/(m\sqrt{d})) \to 0`$ for $`d \ge 2`$ (**Proposition 2.3**). Nevertheless, by replacing active-set freezing with pointwise flip-set decomposition (**Lemma 4.1**) and active-cone Gaussian concentration (**Lemmas 4.3, 5.6–5.8**), we establish non-asymptotic, dimension-free local sharp growth and outlier-robust recovery for arbitrary $`r \ge 2`$.
 
 ---
 
 ## 2. Main Results (`paper/main.pdf`)
 
 - **Structural Preliminaries (Section 2):**
-  - **Proposition 2.1:** Deterministic piecewise-affine error bounds via Robinson (1981) and Dolgopolik (2023), showing coercivity and a global error bound when $\{a_i\}_{i=1}^m$ positively spans $\mathbb{R}^d$, and a 4-point $d=2, r=2$ counterexample where coercivity and global error bounds fail without positive spanning.
-  - **Proposition 2.2:** Non-weak-convexity and directional V-kink criterion: Part (a) gives an explicit $d=1, r=2, m=1$ non-weakly-convex witness, and Part (b) characterizes local non-weak-convexity via the directional slope jump $K(\beta; E) < 0$ (paired with a cancellation counterexample refuting the naive active-tie condition).
-  - **Proposition 2.3:** Sharp dimensional dichotomy for the active-set stability radius ($d = 1$ invariance $\rho_{\mathrm{stab}} = \|v\|_2/\sqrt{2}$ a.s. vs. uniform non-asymptotic $\Theta_{\mathbb{P}}(\|v\|_2/(m\sqrt{d}))$ collapse for $d \ge 2$).
+  - **Proposition 2.1:** Deterministic piecewise-affine error bounds via Robinson (1981) and Dolgopolik (2023), showing coercivity and a global error bound when $`\{a_i\}_{i=1}^m`$ positively spans $`\mathbb{R}^d`$, and a 4-point $d=2, r=2$ counterexample where coercivity and global error bounds fail without positive spanning.
+  - **Proposition 2.2:** Non-weak-convexity and directional V-kink criterion: Part (a) gives an explicit $d=1, r=2, m=1$ non-weakly-convex witness, and Part (b) characterizes local non-weak-convexity via the directional slope jump $`K(\beta; E) < 0`$ (paired with a cancellation counterexample refuting the naive active-tie condition).
+  - **Proposition 2.3:** Sharp dimensional dichotomy for the active-set stability radius ($d = 1$ invariance $`\rho_{\mathrm{stab}} = \|v\|_2/\sqrt{2}`$ a.s. vs. uniform non-asymptotic $`\Theta_{\mathbb{P}}(\|v\|_2/(m\sqrt{d}))`$ collapse for $`d \ge 2`$).
 - **Global $r = 2$ Gaussian Population Sharpness (Section 3):**
-  - **Theorem 3.1 & Remark 3.2:** Exact coupled one-sided remainder identity in block coordinates and scale-free global sharpness $F(\beta) \ge \frac{\sqrt{2}-1}{\sqrt{\pi}}\,\operatorname{dist}(\beta, X_{\mathrm{pop}}^*)$ for all $d \ge 1$ (Remark 3.2 notes non-optimality of the Frobenius constant via the balanced witness $\frac{2-\sqrt{2}}{\sqrt{\pi}} \approx 0.330495$).
-- **General-$r$ Population Geometry & $\ell_1$-vs.-$\ell_2$ Conditioning (Section 4):**
-  - **Lemmas 4.1–4.3, Proposition 4.4, Theorem 4.5:** Pointwise flip decomposition (**Lemma 4.1**), exact 2D Gaussian polar flip integral (**Lemma 4.2**), universal Gaussian bathtub bound $\alpha(C) \ge \frac{\sqrt{2\pi}}{6}\pi(C)^2$ (**Lemma 4.3**), explicit $\Theta(p^2)$ vs. $\Theta(p^3)$ active-cone conditioning advantage of $\ell_1$ over $\ell_2$ (**Proposition 4.4**), and general-$r$ local population sharp growth (**Theorem 4.5**).
+  - **Theorem 3.1 & Remark 3.2:** Exact coupled one-sided remainder identity in block coordinates and scale-free global sharpness
+
+    ```math
+    F(\beta) \ge \frac{\sqrt{2}-1}{\sqrt{\pi}}\,\mathrm{dist}(\beta, X_{\mathrm{pop}}^*)
+    ```
+
+    for all $`d \ge 1`$ (Remark 3.2 notes non-optimality of the Frobenius constant via the balanced witness $`\frac{2-\sqrt{2}}{\sqrt{\pi}} \approx 0.330495`$).
+- **General-$r$ Population Geometry & $`\ell_1`$-vs.-$`\ell_2`$ Conditioning (Section 4):**
+  - **Lemmas 4.1–4.3, Proposition 4.4, Theorem 4.5:** Pointwise flip decomposition (**Lemma 4.1**), exact 2D Gaussian polar flip integral (**Lemma 4.2**), universal Gaussian bathtub bound $`\alpha(C) \ge \frac{\sqrt{2\pi}}{6}\pi(C)^2`$ (**Lemma 4.3**), explicit $`\Theta(p^2)`$ vs. $`\Theta(p^3)`$ active-cone conditioning advantage of $`\ell_1`$ over $`\ell_2`$ (**Proposition 4.4**), and general-$r$ local population sharp growth (**Theorem 4.5**).
 - **Finite-Sample Outlier-Robust Sharp Growth (Section 5):**
-  - **Theorem 5.1 & Remark 5.2:** Under isotropic Gaussian covariates and an oblivious fixed corruption subset $S_{\mathrm{bad}}$ of fraction $\alpha < 1/2$, with high probability over $a$ *simultaneously* for all arbitrary (possibly data-dependent) outlier magnitudes $\xi$ supported on $S_{\mathrm{bad}}$,
-    $$
+  - **Theorem 5.1 & Remark 5.2:** Under isotropic Gaussian covariates and an oblivious fixed corruption subset $`S_{\mathrm{bad}}`$ of fraction $`\alpha < 1/2`$, with high probability over $a$ *simultaneously* for all arbitrary (possibly data-dependent) outlier magnitudes $`\xi`$ supported on $`S_{\mathrm{bad}}`$,
+
+    ```math
     f_\xi(\beta) - f_\xi(\beta^*) \ge \frac{(1 - 2\alpha)\alpha_{\min}}{4}\max\bigl(\|\beta - \beta^*\|_{1,2},\, \|\beta - \beta^*\|_F\bigr)
     \qquad \forall \beta \in B(\beta^*, \rho),
-    $$
-    with global $2$-Lipschitzness and unique local recovery $\beta^* \in X^*$ (plus exact half-radius distance identity when $\xi \equiv 0$). **Remark 5.2** details the $\kappa$-free and $\log(m/d)$-free sample complexity structure and its purely geometric $\pi_{\min}$-parameterized version via Lemma 4.3.
-  - **Corollaries 5.3–5.4:** Explicit noiseless $r = 2$ sample threshold $m \ge 3400\,d + 480\log(6/\delta_{\mathrm{fail}})$ (dominating both the cone-event branch $\approx 1494.35\,d + 402.12\log(6/\delta_{\mathrm{fail}})$ and flip-event branch $\approx 3046.45\,d + 477.93\log(6/\delta_{\mathrm{fail}})$) with $\rho/2 = \|v\|_2/(104\sqrt{\pi})$ and $L/\mu \le 8\sqrt{2\pi}$ (**Corollary 5.3**), and verification of Assumption `(A1)` in Charisopoulos & Davis (2024, `arXiv:2201.04611`, Prop. 2.1, Thm. 2.1, Cor. 2.3) (**Corollary 5.4**).
-  - **Proposition 5.5:** Matching breakdown converse showing recovery fails with probability $\ge 1 - \exp(-\frac{(2\alpha-1)^2}{2\pi}m)$ whenever $\alpha > 1/2$.
+    ```
+
+    with global $2$-Lipschitzness and unique local recovery $`\beta^* \in X^*`$ (plus exact half-radius distance identity when $`\xi \equiv 0`$). **Remark 5.2** details the $`\kappa`$-free and $`\log(m/d)`$-free sample complexity structure and its purely geometric $`\pi_{\min}`$-parameterized version via Lemma 4.3.
+  - **Corollaries 5.3–5.4:** Explicit noiseless $r = 2$ sample threshold $`m \ge 3400\,d + 480\log(6/\delta_{\mathrm{fail}})`$ (dominating both the cone-event branch $`\approx 1494.35\,d + 402.12\log(6/\delta_{\mathrm{fail}})`$ and flip-event branch $`\approx 3046.45\,d + 477.93\log(6/\delta_{\mathrm{fail}})`$) with $`\rho/2 = \|v\|_2/(104\sqrt{\pi})`$ and $`L/\mu \le 8\sqrt{2\pi}`$ (**Corollary 5.3**), and verification of Assumption `(A1)` in Charisopoulos & Davis (2024, `arXiv:2201.04611`, Prop. 2.1, Thm. 2.1, Cor. 2.3) (**Corollary 5.4**).
+  - **Proposition 5.5:** Matching breakdown converse showing recovery fails with probability $`\ge 1 - \exp(-\frac{(2\alpha-1)^2}{2\pi}m)`$ whenever $`\alpha > 1/2`$.
 
 ---
 
 ## 3. Limitations & Scope Boundary
 
 This preprint explicitly does **not** claim:
-- **No global initialization guarantee** under gross outliers (Theorem 5.1 is strictly local in $B(\beta^*, \rho)$).
-- **No provable $f(\beta^*)$-free convergence theorem** for non-weakly-convex sharp losses (Corollary 5.4 applies to oracle-$f^*$ Polyak/SuperPolyak methods; the `GeomDecaySGM` experiment in Section 6 and Supplement SM2 is strictly empirical and still uses local initialization $\|\beta^{(0)}-\beta^*\|_F = 0.25$).
-- **No omniscient adversarial outlier robustness up to $\alpha < 1/2$** (selecting $S_{\mathrm{bad}}$ adversarially as a function of $a$ breaks sharpness at $\alpha = 0.25$, as verified in Supplement SM2 and `experiments/adversarial_tests.py`).
-- **No dense observation noise or non-Gaussian covariate theory** (all probabilistic bounds assume $a_i \stackrel{\text{i.i.d.}}{\sim} \mathcal{N}(0, I_d)$ and exact sparse corruptions).
+
+- **No global initialization guarantee** under gross outliers (Theorem 5.1 is strictly local in $`B(\beta^*, \rho)`$).
+- **No provable $`f(\beta^*)`$-free convergence theorem** for non-weakly-convex sharp losses (Corollary 5.4 applies to oracle-$`f^*`$ Polyak/SuperPolyak methods; the `GeomDecaySGM` experiment in Section 6 and Supplement SM2 is strictly empirical and still uses local initialization $`\|\beta^{(0)}-\beta^*\|_F = 0.25`$).
+- **No omniscient adversarial outlier robustness up to $`\alpha < 1/2`$** (selecting $`S_{\mathrm{bad}}`$ adversarially as a function of $a$ breaks sharpness at $`\alpha = 0.25`$, as verified in Supplement SM2 and `experiments/adversarial_tests.py`).
+- **No dense observation noise or non-Gaussian covariate theory** (all probabilistic bounds assume $`a_i \stackrel{\text{i.i.d.}}{\sim} \mathcal{N}(0, I_d)`$ and exact sparse corruptions).
 
 See [docs/verification_boundary_and_open_problems.md](docs/verification_boundary_and_open_problems.md) for the complete verification boundary and the five open problems from Section 7.
 
@@ -59,6 +69,7 @@ See [docs/verification_boundary_and_open_problems.md](docs/verification_boundary
 ## 4. Machine-Checked Formal Verification (Lean 4)
 
 The core statistical theorems (**Theorem 3.1**, **Theorem 5.1**, **Proposition 5.5**), all supporting concentration lemmas (**Lemmas 4.1, 4.3, 5.6–5.8**), and **Lemmas A.1–A.3** are formally verified in Lean 4 inside `lean/`:
+
 - **Toolchain:** `leanprover/lean4:v4.35.0` · **Mathlib4:** `v4.35.0` (`56a00585`)
 - **Size:** 12 `.lean` files, **5,851 lines**
 - **Hygiene:** **0** `sorry`, **0** `admit`, **0** custom `axiom`, **0** `unsafe`/`implemented_by`
